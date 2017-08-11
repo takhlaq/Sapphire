@@ -1,8 +1,10 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include <stdint.h>
-#include <cstdint>
+#include "../cbasetypes.h"
+
+#include "../cbasetypes.h"
+
 #include <vector>
 
 #include <boost/make_shared.hpp>

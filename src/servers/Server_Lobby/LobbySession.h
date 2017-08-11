@@ -3,7 +3,8 @@
 #ifndef _CLobbySession_H_
 #define _CLobbySession_H_
 
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 #include <string>
 #include <string.h>
 

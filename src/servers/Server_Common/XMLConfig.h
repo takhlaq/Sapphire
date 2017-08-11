@@ -1,7 +1,8 @@
 #ifndef __XMLCONFIG_H
 #define __XMLCONFIG_H
 
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 
 #include <boost/property_tree/ptree.hpp>
 

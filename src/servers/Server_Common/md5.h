@@ -1,4 +1,5 @@
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 
 #ifndef _MD52_H
 #define _MD52_H

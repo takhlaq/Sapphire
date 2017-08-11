@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 
 #include <Server_Common/Database.h>
 #include <Server_Common/Logger.h>

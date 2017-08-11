@@ -2,7 +2,8 @@
 #ifndef _CELL_H
 #define _CELL_H
 
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 
 #include "Forwards.h"
 #include <set>

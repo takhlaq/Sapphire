@@ -1,7 +1,8 @@
 #ifndef _EVENTHELPER_H
 #define _EVENTHELPER_H
 
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 #include <string>
 
 namespace Core {
