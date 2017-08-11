@@ -100,7 +100,7 @@ namespace Core {
             if( arg == "ip" )
             {
                // todo: ip addr in config
-               m_pConfig->setValue< std::string >( "Settings.General.ListenIP", val );
+               m_pConfig->setValue< std::string >( "Settings.General.ListenIp", val );
             }
             else if( arg == "p" || arg == "port" )
             {
