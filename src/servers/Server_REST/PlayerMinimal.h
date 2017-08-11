@@ -2,7 +2,8 @@
 #define _PLAYERMINIMAL_H
 
 #include <map>
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 #include <string.h>
 namespace Core {
 

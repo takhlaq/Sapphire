@@ -3,7 +3,8 @@
 
 #include "CommonNetwork.h"
 #include "Forwards.h"
-#include <stdint.h>
+#include "../cbasetypes.h"
+
 #include <string.h>
 
 namespace Core {

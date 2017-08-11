@@ -4,7 +4,8 @@
 // Revised code--3/20/94
 // Converted to C++ class 5/96, Jim Conger
 
-#include <cstdint>
+#include "../cbasetypes.h"
+
 #include "blowfish.h"
 #include "blowfish.h2"	// holds the random digit tables
 

@@ -7,7 +7,8 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <vector>
 #include <list>
-#include <boost/cstdint.hpp>
+#include "../cbasetypes.h"
+
 
 #include "Forwards.h"
 #include "Acceptor.h"
