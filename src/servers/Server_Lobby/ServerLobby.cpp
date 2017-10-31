@@ -24,6 +24,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
+#include <boost/uuid/sha1.hpp>
 
 Core::Logger g_log;
 Core::Network::RestConnector g_restConnector;
@@ -52,6 +53,69 @@ namespace Core {
       return m_pConfig;
    }
 
+   bool ServerLobby::checkVersionString( std::string versionString )
+   {
+      return m_gameVersion.substr( 0, versionString.size() ) == versionString;
+   }
+
+   std::string ServerLobby::generateVersionString( std::string path )
+   {
+      
+      auto f = fopen( ( path + "\\..\\..\\ffxiv.exe" ).c_str(), "rb" );
+      fseek( f, 0, SEEK_END );
+      auto size = ftell( f );
+      std::vector<char> ffxiv_exe_bytes( size );
+      rewind( f );
+      fread( ffxiv_exe_bytes.data(), 1, size, f );
+      fclose( f );
+
+      boost::uuids::detail::sha1 sha1;
+      sha1.process_bytes( ffxiv_exe_bytes.data(), size );
+
+      unsigned hash[5] = { 0 };
+      sha1.get_digest( hash );
+
+      char ffxiv_exe_sha1[41] = { 0 };
+
+      for (int i = 0; i < 5; i++)
+      {
+         std::sprintf( ffxiv_exe_sha1 + ( i << 3 ), "%08x", hash[i] );
+      }
+
+      f = fopen( ( path + "\\..\\..\\ffxiv_dx11.exe" ).c_str(), "rb" );
+      fseek( f, 0, SEEK_END );
+      size = ftell( f );
+      std::vector<char> ffxiv_dx11_exe_bytes( size );
+      rewind( f );
+      fread( ffxiv_dx11_exe_bytes.data(), 1, size, f );
+      fclose( f );
+
+      sha1.reset();
+      sha1.process_bytes( ffxiv_dx11_exe_bytes.data(), size );
+
+      sha1.get_digest( hash );
+
+      char ffxiv_dx11_exe_sha1[41] = { 0 };
+
+      for (int i = 0; i < 5; i++)
+      {
+         std::sprintf( ffxiv_dx11_exe_sha1 + ( i << 3 ), "%08x", hash[i] );
+      }
+
+      std::ifstream ex1stream( path + "\\..\\ex1\\ex1.ver" );
+      std::string ex1ver( ( std::istreambuf_iterator<char>( ex1stream ) ),
+         std::istreambuf_iterator<char>() );
+
+      std::ifstream ex2stream( path + "\\..\\ex2\\ex2.ver" );
+      std::string ex2ver( ( std::istreambuf_iterator<char>( ex2stream ) ),
+         std::istreambuf_iterator<char>() );
+
+      ex1ver = ex1ver.substr( 0, ex1ver.size() - 5 );
+      ex2ver = ex2ver.substr( 0, ex2ver.size() - 5 );
+
+      return "ffxiv.exe/" + std::to_string( ffxiv_exe_bytes.size() ) + "/" + ffxiv_exe_sha1 + ",ffxiv_dx11.exe/" + std::to_string( ffxiv_dx11_exe_bytes.size() ) + "/" + ffxiv_dx11_exe_sha1 + "+" + ex1ver + "+" + ex2ver;
+   }
+
    void ServerLobby::run( int32_t argc, char* argv[] )
    {
       g_log.setLogPath( "log\\SapphireLobby" );
@@ -69,6 +133,9 @@ namespace Core {
          g_log.fatal( "Error loading settings! " );
          return;
       }
+
+      m_gameVersion = generateVersionString( m_pConfig->getValue< std::string >( "Settings.General.DataPath", "" ) );
+      g_log.info( "Game version: " + m_gameVersion );
 
       Network::HivePtr hive( new Network::Hive() );
       Network::addServerToHive< Network::GameConnection >( m_ip, m_port, hive );

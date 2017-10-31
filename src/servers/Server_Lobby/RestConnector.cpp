@@ -71,7 +71,7 @@ Core::LobbySessionPtr Core::Network::RestConnector::getSession( char* sId )
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return nullptr;
       }
 
@@ -116,7 +116,7 @@ bool Core::Network::RestConnector::checkNameTaken( std::string name )
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return true;
       }
 
@@ -153,7 +153,7 @@ uint32_t Core::Network::RestConnector::getNextCharId()
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return -1;
       }
 
@@ -195,7 +195,7 @@ uint64_t Core::Network::RestConnector::getNextContentId()
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return -1;
       }
 
@@ -225,7 +225,6 @@ CharList Core::Network::RestConnector::getCharList( char * sId )
       return list;
 
    std::string content = std::string( std::istreambuf_iterator<char>( r->content ), {} );
-   g_log.debug( content );
    if( r->status_code.find( "200" ) != std::string::npos )
    {
       using namespace boost::property_tree;
@@ -239,17 +238,13 @@ CharList Core::Network::RestConnector::getCharList( char * sId )
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return list;
       }
 
       if( pt.get<std::string>( "result" ).find( "invalid" ) == std::string::npos )
       {
-
-         g_log.debug( pt.get_value<std::string>( "result" ) );
-
          for( auto& child : pt.get_child( "charArray" ) ){
-            g_log.debug( child.second.get<std::string>( "contentId" ) );
             list.push_back( std::make_tuple( child.second.get<std::string>( "name" ), atoi( child.second.get<std::string>( "charId" ).c_str() ), child.second.get<uint64_t>( "contentId" ), child.second.get<std::string>( "infoJson" ) ) );
          }
 
@@ -290,7 +285,7 @@ bool Core::Network::RestConnector::deleteCharacter( char* sId, std::string name 
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return false;
       }
 
@@ -314,7 +309,6 @@ int Core::Network::RestConnector::createCharacter( char * sId,  std::string name
       return -1;
 
    std::string content = std::string( std::istreambuf_iterator<char>( r->content ), {} );
-   g_log.debug( content );
    if( r->status_code.find( "200" ) != std::string::npos )
    {
       using namespace boost::property_tree;
@@ -328,7 +322,7 @@ int Core::Network::RestConnector::createCharacter( char * sId,  std::string name
       }
       catch( std::exception& e )
       {
-         g_log.debug( "Could not parse REST response: " + std::string( e.what() ) );
+         g_log.error( "Could not parse REST response: " + std::string( e.what() ) );
          return -1;
       }
 

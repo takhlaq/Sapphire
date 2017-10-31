@@ -30,11 +30,16 @@ namespace Core
       uint16_t m_port;
       std::string m_ip;
 
+      std::string m_gameVersion;
+
       boost::shared_ptr<XMLConfig> m_pConfig;
 
    public:
       ServerLobby( const std::string& configPath );
       ~ServerLobby( void );
+
+      bool checkVersionString( std::string versionString );
+      std::string generateVersionString( std::string path );
 
       void run( int32_t argc, char* argv[] );
 
