@@ -113,15 +113,30 @@ void Core::Network::GameConnection::OnError( const boost::system::error_code & e
 
 void Core::Network::GameConnection::sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t tmpId )
 {
+   sendError( sequence, errorcode, messageId, 0, 0, tmpId );
+}
+
+void Core::Network::GameConnection::sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t param1, uint8_t param2, uint32_t tmpId )
+{
+   sendError( sequence, errorcode, messageId, param1, param2, "", tmpId );
+}
+
+void Core::Network::GameConnection::sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t param1, uint8_t param2, std::string message, uint32_t tmpId )
+{
    GamePacketNew< FFXIVIpcLobbyError, ServerLobbyIpcType > errorPacket( tmpId );
 
    errorPacket.data().seq = sequence;
    errorPacket.data().error_id = errorcode;
    errorPacket.data().message_id = messageId;
+   errorPacket.data().param = param1;
+   errorPacket.data().param2 = param2;
+   strcpy( errorPacket.data().message, message.c_str() );
 
    Packets::LobbyPacketContainer pRP( m_encKey );
    pRP.addPacket( errorPacket );
    sendPacket( pRP );
+
+   g_log.info( "\n"+Util::binaryToHexDump( reinterpret_cast<uint8_t*>( &errorPacket.data() ), sizeof( errorPacket.data() ) ) );
 }
 
 void Core::Network::GameConnection::getCharList( FFXIVARR_PACKET_RAW& packet, uint32_t tmpId )
@@ -256,20 +271,20 @@ void Core::Network::GameConnection::enterWorld( FFXIVARR_PACKET_RAW& packet, uin
 
 bool Core::Network::GameConnection::sendServiceAccountList( FFXIVARR_PACKET_RAW& packet, uint32_t tmpId )
 {
-   LobbySessionPtr pSession = g_serverLobby.getSession( reinterpret_cast<char*>(&packet.data[0]) + 0x20 );
-   
-   if( g_serverLobby.getConfig()->getValue<bool>( "Settings.Parameters.AllowNoSessionConnect" ) && pSession == nullptr )
+   LobbySessionPtr pSession = g_serverLobby.getSession( reinterpret_cast< char* >( &packet.data[0] ) + 0x20 );
+
+   if( g_serverLobby.getConfig()->getValue< bool >( "Settings.Parameters.AllowNoSessionConnect" ) && pSession == nullptr )
    {
       LobbySessionPtr session( new Core::LobbySession() );
       session->setAccountID( 0 );
-      session->setSessionId( static_cast<uint8_t *>(&packet.data[0]) + 0x20 );
+      session->setSessionId( static_cast< uint8_t * >(&packet.data[0]) + 0x20 );
       pSession = session;
-      g_log.info( "Allowed connection with no session: " + std::string( reinterpret_cast<char*>(&packet.data[0]) + 0x20 ) );
+      g_log.info( "Allowed connection with no session: " + std::string( reinterpret_cast< char* >(&packet.data[0]) + 0x20 ) );
    }
 
    if( pSession != nullptr )
    {
-      g_log.info( "Found session linked to accountId: " + std::to_string( pSession->getAccountID() ) + " (" + std::string( reinterpret_cast<char*>( &packet.data[0] ) + 0x20 ) + ")" );
+      g_log.info( "Found session linked to accountId: " + std::to_string( pSession->getAccountID() ) + " (" + std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x20 ) + ")" );
       m_pSession = pSession;
       GamePacketNew< FFXIVIpcServiceIdInfo, ServerLobbyIpcType > serviceIdInfoPacket( tmpId );
       sprintf( serviceIdInfoPacket.data().serviceAccount[0].name, "FINAL FANTASY XIV" );
@@ -285,21 +300,24 @@ bool Core::Network::GameConnection::sendServiceAccountList( FFXIVARR_PACKET_RAW&
    }
    else
    {
-      g_log.info( "Could not retrieve session: " + std::string( reinterpret_cast<char*>(&packet.data[0]) + 0x20 ) );
+      g_log.info( "Could not retrieve session: " + std::string( reinterpret_cast< char* >(&packet.data[0]) + 0x20 ) );
       sendError( 1, 5006, 13001, tmpId );
+      Disconnect();
 
       return true;
    }
 
-   if (!g_serverLobby.checkVersionString( std::string( reinterpret_cast<char*>( &packet.data[0] ) + 0x60 ) ) || true)
+   if( !g_serverLobby.checkVersionString( std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) ) && !g_serverLobby.getConfig()->getValue< bool >( "Settings.Parameters.AllowBadGameVersion" ) )
    {
-      g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Invalid game version: " + std::string( reinterpret_cast<char*>( &packet.data[0] ) + 0x60 ) );
-      sendError( 1, 1012, 13101, tmpId );
+      g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Invalid game version: " + std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) );
+      sendError( 1, 1012, 13101, 0, 1, tmpId );
+      Disconnect();
 
       return true;
    }
 
-   sendError( 1, 1012, 13101, tmpId );
+   sendError( 1, 1012, 13101, 0, 1, tmpId );
+   Disconnect();
    g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Valid game version found: " + std::string( reinterpret_cast<char*>( &packet.data[0] ) + 0x60 ) );
    return false;
 }

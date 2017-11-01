@@ -133,6 +133,7 @@ struct FFXIVIpcLobbyError : FFXIVIpcBasePacket<LobbyError>
    uint32_t error_id;
    uint32_t param;
    uint16_t message_id;
+   uint8_t param2;
    char message[516];
 };
 

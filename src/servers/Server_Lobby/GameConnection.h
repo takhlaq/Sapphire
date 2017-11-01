@@ -55,6 +55,8 @@ public:
 
    void OnError( const boost::system::error_code & error ) override;
    void sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t tmpId );
+   void sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t param1, uint8_t param2, uint32_t tmpId );
+   void sendError( uint64_t sequence, uint32_t errorcode, uint16_t messageId, uint32_t param1, uint8_t param2, std::string message, uint32_t tmpId );
 
    void getCharList( Packets::FFXIVARR_PACKET_RAW& packet, uint32_t tmpId );
    void enterWorld( Packets::FFXIVARR_PACKET_RAW& packet, uint32_t tmpId );
