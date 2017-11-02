@@ -140,7 +140,7 @@ namespace Core {
       Network::HivePtr hive( new Network::Hive() );
       Network::addServerToHive< Network::GameConnection >( m_ip, m_port, hive );
 
-      g_log.info( "Lobbyserver ready for connections." );
+      g_log.info( "Lobbyserver ready for connections on " + m_ip + ":" + std::to_string(m_port) );
 
       boost::thread_group worker_threads;
       worker_threads.create_thread( boost::bind( &Network::Hive::Run, hive.get() ) );

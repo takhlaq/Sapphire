@@ -302,7 +302,7 @@ bool Core::Network::GameConnection::sendServiceAccountList( FFXIVARR_PACKET_RAW&
    {
       g_log.info( "Could not retrieve session: " + std::string( reinterpret_cast< char* >(&packet.data[0]) + 0x20 ) );
       sendError( 1, 5006, 13001, tmpId );
-      Disconnect();
+      //Disconnect();
 
       return true;
    }
@@ -311,13 +311,13 @@ bool Core::Network::GameConnection::sendServiceAccountList( FFXIVARR_PACKET_RAW&
    {
       g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Invalid game version: " + std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) );
       sendError( 1, 1012, 13101, 0, 1, tmpId );
-      Disconnect();
+      //Disconnect();
 
       return true;
    }
 
    sendError( 1, 1012, 13101, 0, 1, tmpId );
-   Disconnect();
+   //Disconnect();
    g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Valid game version found: " + std::string( reinterpret_cast<char*>( &packet.data[0] ) + 0x60 ) );
    return false;
 }
@@ -475,6 +475,7 @@ void Core::Network::GameConnection::sendPacket( Packets::LobbyPacketContainer& p
 {
    uint16_t size = pLpc.getSize();
    uint8_t* dataPtr = pLpc.getRawData( false );
+   g_log.info( Util::binaryToHexDump( dataPtr, size ) );
    std::vector< uint8_t > sendBuffer;
    sendBuffer.assign( dataPtr, dataPtr + size );
    Send( sendBuffer );
