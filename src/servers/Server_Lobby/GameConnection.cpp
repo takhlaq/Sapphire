@@ -300,14 +300,14 @@ bool Core::Network::GameConnection::sendServiceAccountList( FFXIVARR_PACKET_RAW&
    }
    else
    {
-      g_log.info( "Could not retrieve session: " + std::string( reinterpret_cast< char* >(&packet.data[0]) + 0x20 ) );
+      g_log.info( "Could not retrieve session: " + std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x20 ) );
       sendError( 1, 5006, 13001, tmpId );
       //Disconnect();
 
       return true;
    }
 
-   if( !g_serverLobby.checkVersionString( std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) ) && !g_serverLobby.getConfig()->getValue< bool >( "Settings.Parameters.AllowBadGameVersion" ) )
+   if( !g_serverLobby.checkVersionString( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) && !g_serverLobby.getConfig()->getValue< bool >( "Settings.Parameters.AllowBadGameVersion" ) )
    {
       g_log.info( "[" + std::to_string( m_pSession->getAccountID() ) + "] Invalid game version: " + std::string( reinterpret_cast< char* >( &packet.data[0] ) + 0x60 ) );
       sendError( 1, 1012, 13101, 0, 1, tmpId );

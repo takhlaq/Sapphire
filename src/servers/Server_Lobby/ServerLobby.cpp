@@ -53,21 +53,32 @@ namespace Core {
       return m_pConfig;
    }
 
-   bool ServerLobby::checkVersionString( std::string versionString )
+   bool ServerLobby::checkVersionString( const std::string& versionString )
    {
-      return m_gameVersion.substr( 0, versionString.size() ) == versionString;
+      return m_gameVersion == versionString;
    }
 
-   std::string ServerLobby::generateVersionString( std::string path )
+   std::string ServerLobby::generateVersionString( const std::string& path )
    {
-      
-      auto f = fopen( ( path + "\\..\\..\\ffxiv.exe" ).c_str(), "rb" );
-      fseek( f, 0, SEEK_END );
-      auto size = ftell( f );
-      std::vector<char> ffxiv_exe_bytes( size );
-      rewind( f );
-      fread( ffxiv_exe_bytes.data(), 1, size, f );
-      fclose( f );
+      std::ifstream dx9Exe( path + "\\..\\..\\ffxiv.exe", std::ios::binary );
+
+      std::vector< char > ffxiv_exe_bytes;
+      int32_t size = 0;
+
+      if( dx9Exe.good() )
+      {
+         dx9Exe.seekg( 0, dx9Exe.end );
+         size = static_cast< int32_t >( dx9Exe.tellg() );
+         ffxiv_exe_bytes.resize( size );
+         dx9Exe.seekg( 0, dx9Exe.beg );
+         dx9Exe.read( &ffxiv_exe_bytes[0], size );
+         dx9Exe.close();
+      }
+      else
+      {
+         throw std::runtime_error( "Core::ServerLobby::generateVersionString: Unable to find " + path + "\\..\\..\\ffxiv.exe" );
+         return std::string();
+      }
 
       boost::uuids::detail::sha1 sha1;
       sha1.process_bytes( ffxiv_exe_bytes.data(), size );
@@ -82,33 +93,46 @@ namespace Core {
          std::sprintf( ffxiv_exe_sha1 + ( i << 3 ), "%08x", hash[i] );
       }
 
-      f = fopen( ( path + "\\..\\..\\ffxiv_dx11.exe" ).c_str(), "rb" );
-      fseek( f, 0, SEEK_END );
-      size = ftell( f );
-      std::vector<char> ffxiv_dx11_exe_bytes( size );
-      rewind( f );
-      fread( ffxiv_dx11_exe_bytes.data(), 1, size, f );
-      fclose( f );
+      std::ifstream dx11Exe( path + "\\..\\..\\ffxiv_dx11.exe", std::ios::binary );
 
-      sha1.reset();
+      std::vector< char > ffxiv_dx11_exe_bytes;
+      size = 0;
+
+      if( dx11Exe.good() )
+      {
+         dx11Exe.seekg( 0, dx11Exe.end );
+         size = static_cast< int32_t >( dx11Exe.tellg() );
+         ffxiv_dx11_exe_bytes.resize( size );
+         dx11Exe.seekg( 0, dx11Exe.beg );
+         dx11Exe.read( &ffxiv_dx11_exe_bytes[0], size );
+         dx11Exe.close();
+      }
+      else
+      {
+         throw std::runtime_error( "Core::ServerLobby::generateVersionString: Unable to find " + path + "\\..\\..\\ffxiv_dx11.exe" );
+         return std::string();
+      }
+
+      sha1 = boost::uuids::detail::sha1();
       sha1.process_bytes( ffxiv_dx11_exe_bytes.data(), size );
 
+      memset( hash, 0, sizeof( hash ) );
       sha1.get_digest( hash );
 
       char ffxiv_dx11_exe_sha1[41] = { 0 };
 
-      for (int i = 0; i < 5; i++)
+      for( int i = 0; i < 5; i++ )
       {
          std::sprintf( ffxiv_dx11_exe_sha1 + ( i << 3 ), "%08x", hash[i] );
       }
 
       std::ifstream ex1stream( path + "\\..\\ex1\\ex1.ver" );
-      std::string ex1ver( ( std::istreambuf_iterator<char>( ex1stream ) ),
-         std::istreambuf_iterator<char>() );
+      std::string ex1ver( ( std::istreambuf_iterator< char >( ex1stream ) ),
+         std::istreambuf_iterator< char >() );
 
       std::ifstream ex2stream( path + "\\..\\ex2\\ex2.ver" );
-      std::string ex2ver( ( std::istreambuf_iterator<char>( ex2stream ) ),
-         std::istreambuf_iterator<char>() );
+      std::string ex2ver( ( std::istreambuf_iterator< char >( ex2stream ) ),
+         std::istreambuf_iterator< char >() );
 
       ex1ver = ex1ver.substr( 0, ex1ver.size() - 5 );
       ex2ver = ex2ver.substr( 0, ex2ver.size() - 5 );
@@ -134,7 +158,16 @@ namespace Core {
          return;
       }
 
-      m_gameVersion = generateVersionString( m_pConfig->getValue< std::string >( "Settings.General.DataPath", "" ) );
+      try
+      {
+         m_gameVersion = generateVersionString( m_pConfig->getValue< std::string >( "Settings.General.DataPath", "" ) );
+      }
+      catch( std::runtime_error& e )
+      {
+         g_log.fatal( e.what() );
+         throw e;
+      }
+
       g_log.info( "Game version: " + m_gameVersion );
 
       Network::HivePtr hive( new Network::Hive() );
@@ -182,7 +215,11 @@ namespace Core {
             }
             else if( arg == "ap" || arg == "auth" || arg == "authport" )
             {
-               m_pConfig->setValue< std::string>( "Settings.General.AuthPort", val );
+               m_pConfig->setValue< std::string >( "Settings.General.AuthPort", val );
+            }
+            else if( arg == "datapath" || arg == "exdpath" )
+            {
+               m_pConfig->setValue< std::string >( "Settings.General.DataPath", val );
             }
             else if( arg == "worldip" || arg == "worldip" )
             {

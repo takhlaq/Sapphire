@@ -38,8 +38,8 @@ namespace Core
       ServerLobby( const std::string& configPath );
       ~ServerLobby( void );
 
-      bool checkVersionString( std::string versionString );
-      std::string generateVersionString( std::string path );
+      bool checkVersionString( const std::string& versionString );
+      std::string generateVersionString( const std::string& path );
 
       void run( int32_t argc, char* argv[] );
 
