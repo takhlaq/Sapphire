@@ -32,11 +32,11 @@ void DDSFile::VInitializeFromFile(const std::string & location)
 		throw MyException("Failure to open dds file from location: " + location);
 
 	char dwMagic[4];
-	file.read(dwMagic, 4);
+	//file.read(dwMagic, 4);
 
 	//Check if file is DDS
-	if (strncmp(dwMagic, "DDS ", 4) != 0)
-		throw MyException("File " + location + " isn't a dds file");
+	//if (strncmp(dwMagic, "DDS ", 4) != 0)
+	//	throw MyException("File " + location + " isn't a dds file");
 
 	// Allocate byte memory that will hold the header
 	dataBuffer = new uint8_t[sizeof(DDS_HEADER)];

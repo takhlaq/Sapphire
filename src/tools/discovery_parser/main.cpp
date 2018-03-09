@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <memory>
 
 #include "pcb.h"
 #include "lgb.h"
@@ -123,6 +124,7 @@ std::string getMapExdEntries( uint32_t mapId )
    static auto& cat = eData->get_category( "Map" );
    std::cout << "Getting Map exd\n";
    static auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
+   static std::unique_ptr< Converter > pConverter = std::make_unique< Converter >();
 
    std::cout << "Getting rows\n";
    static auto rows = exd.get_rows();
@@ -157,6 +159,12 @@ std::string getMapExdEntries( uint32_t mapId )
       char texStr[255];
       auto teriStr = pathStr.substr( 0, pathStr.find_first_of( '/' ) );
       sprintf( &texStr[0], "ui/map/%s/%s%02Xd.tex", pathStr.c_str(), teriStr.c_str(), mapZoneIndex );
+      auto texFile = data1->getFile( &texStr[0] );
+      std::string rawTexFile( teriStr + "0" + std::to_string( mapZoneIndex ) );
+      texFile->exportToFile( rawTexFile + "d.dds" );
+      pConverter->VLoadFile( rawTexFile + "d.dds" );
+      pConverter->VConvert( "DXT1", "BMP" );
+
       return std::string( std::to_string( mapZoneIndex ) + ", " + std::to_string( hierarchy ) + ", " + "\"" + std::string( &texStr[0] ) + "\", " +
                            std::to_string( discoveryIdx ) + ", " + std::to_string( discoveryCompleteBitmask )  );
    }

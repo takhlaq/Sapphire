@@ -16,7 +16,7 @@
 #include <iterator>
 
 std::vector<std::string> separateCommandWords(std::string& command);
-
+/*
 int main()
 {
 	try {
@@ -32,7 +32,7 @@ int main()
 			<< "\t \t (filetype1 must be loaded into datastructure beforehand) \n \n"
 			<< "Q \n"
 			<< "\t - Quits program \n" << std::endl;
-		
+
 		std::shared_ptr<IConverter> pConverter(new Converter);
 		std::string command = "";
 		while (command != "q") {
@@ -40,7 +40,7 @@ int main()
 			std::getline(std::cin, command);
 			std::cout << std::endl;
 			std::vector<std::string> commands = separateCommandWords(command);
-			
+
 			if (commands.size() >= 2) {
 				if (commands.at(0) == "l" && commands.size() == 2)
 					pConverter->VLoadFile(commands.at(1));
@@ -63,4 +63,4 @@ std::vector<std::string> separateCommandWords(std::string& command) {
 	std::vector<std::string> words { std::istream_iterator<std::string>{iss},
 									std::istream_iterator<std::string>{} };
 	return words;
-}
+}*/
