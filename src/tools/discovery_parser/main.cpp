@@ -13,10 +13,10 @@
 #include "pcb.h"
 #include "lgb.h"
 #include "sgb.h"
+#include "tex.h"
+#include "tex_decode.h"
 
-#include "BMP-DDS_Converter/DDSFile.h"
-#include "BMP-DDS_Converter/BMPFile.h"
-#include "BMP-DDS_Converter/Converter.h"
+//#include "s3tc/s3tc.h"
 
 #ifndef STANDALONE
 #include <GameData.h>
@@ -31,7 +31,8 @@
 // garbage to ignore models
 bool ignoreModels = false;
 
-std::string gamePath( "C:\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack" );
+// parsing shit
+std::string gamePath( "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack" );
 std::unordered_map< uint32_t, std::string > eobjNameMap;
 std::unordered_map< uint16_t, std::string > zoneNameMap;
 std::unordered_map< uint16_t, std::vector< std::pair< uint16_t, std::string > > > zoneInstanceMap;
@@ -41,6 +42,8 @@ std::set< std::string > zoneDumpList;
 
 xiv::dat::GameData* data1 = nullptr;
 xiv::exd::ExdData* eData = nullptr;
+
+void readFileToBuffer( const std::string& path, std::vector< char >& buf );
 
 enum class TerritoryTypeExdIndexes : size_t
 {
@@ -55,6 +58,34 @@ struct face
    int32_t f1, f2, f3;
 };
 
+// discovery shit
+constexpr int discoveryMapRows = 3;
+constexpr int discoveryMapCols = 4;
+int mapOffsetX, mapOffsetY;
+
+struct Pos
+{
+   float x, y, z;
+
+   Pos( float x, float y, float z )
+   {
+      this->x = x;
+      this->y = y;
+      this->z = z;
+   }
+
+   static Pos to3d( int x, int y, int scale )
+   {
+      return Pos( ( x / scale ) - mapOffsetX, 0, ( y / scale ) - mapOffsetY );
+   }
+
+   static Pos to2d( float x, float y, float z, int scale )
+   {
+      return Pos( ( x * scale ) + mapOffsetX , y, ( z * scale ) + mapOffsetY );
+   }
+};
+
+// init
 void initExd( const std::string& gamePath )
 {
    data1 = data1 ? data1 : new xiv::dat::GameData( gamePath );
@@ -117,6 +148,9 @@ int parseBlockEntry( char* data, std::vector<PCB_BLOCK_ENTRY>& entries, int gOff
    return 0;
 }
 
+
+bool exportedImage = false;
+
 std::string getMapExdEntries( uint32_t mapId )
 {
    std::cout << "Getting Map cat \n";
@@ -124,7 +158,8 @@ std::string getMapExdEntries( uint32_t mapId )
    static auto& cat = eData->get_category( "Map" );
    std::cout << "Getting Map exd\n";
    static auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
-   static std::unique_ptr< Converter > pConverter = std::make_unique< Converter >();
+   //static std::unique_ptr< Converter > pConverter = std::make_unique< Converter >();
+
 
    std::cout << "Getting rows\n";
    static auto rows = exd.get_rows();
@@ -161,10 +196,36 @@ std::string getMapExdEntries( uint32_t mapId )
       sprintf( &texStr[0], "ui/map/%s/%s%02Xd.tex", pathStr.c_str(), teriStr.c_str(), mapZoneIndex );
       auto texFile = data1->getFile( &texStr[0] );
       std::string rawTexFile( teriStr + "0" + std::to_string( mapZoneIndex ) );
-      texFile->exportToFile( rawTexFile + "d.dds" );
-      pConverter->VLoadFile( rawTexFile + "d.dds" );
-      pConverter->VConvert( "DXT1", "BMP" );
+      texFile->exportToFile( rawTexFile + "d.tex" );
+      auto tex = TEX_FILE( rawTexFile + "d.tex" );
 
+      int mipMapDivide = 1;
+      int h = tex.header.uncompressedHeight;
+      int w = tex.header.uncompressedWidth;
+
+      if( !exportedImage )
+      {
+         auto img = DecodeTexDXT1( tex, tex.header.mipMaps[0], h / mipMapDivide, w / mipMapDivide,
+            ( h / mipMapDivide ) / 4, ( w / mipMapDivide ) / 4
+         );
+         img.toFile( rawTexFile + ".img" );
+
+         std::vector< char > buf;
+         readFileToBuffer( rawTexFile + ".img", buf );
+
+         auto img2 = Image( buf.data() );
+
+         std::set< uint32_t > colours;
+         for( auto row : img.data )
+            for( auto colour : row )
+               colours.emplace( colour );
+
+         for( auto colour : colours )
+            std::cout << "Colour: " << colour << "\n";
+
+         std::cout << "Image Height: " << img.height << " Width: " << img.width << "\n";
+         exportedImage = true;
+      }
       return std::string( std::to_string( mapZoneIndex ) + ", " + std::to_string( hierarchy ) + ", " + "\"" + std::string( &texStr[0] ) + "\", " +
                            std::to_string( discoveryIdx ) + ", " + std::to_string( discoveryCompleteBitmask )  );
    }
@@ -204,10 +265,12 @@ void dumpLevelExdEntries( uint32_t zoneId, const std::string& name = std::string
 
          if( zone == zoneId )
          {
+            auto pos = Pos::to2d( x, y, z, 1 );
             std::string outStr(
                std::to_string( id ) + ", " + std::to_string( objectid ) + ", " + std::to_string( mapid ) + ", " +
                std::to_string( x ) + ", " + std::to_string( y ) + ", " + std::to_string( z ) + ", " +
-               std::to_string( yaw ) + ", " + std::to_string( radius ) + ", " + std::to_string( type ) + ", " + std::to_string( zone ) + ", " + getMapExdEntries( mapid ) + "\n"
+               std::to_string( yaw ) + ", " + std::to_string( radius ) + ", " + std::to_string( type ) + ", " + std::to_string( zone ) + ", " +
+                getMapExdEntries( mapid ) + "\n"
             );
             outfile.write( outStr.c_str(), outStr.size() );
          }
@@ -311,7 +374,7 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
 
 
    std::string outStr(
-      std::to_string( id ) + ", " + typeStr +  "\"" + name + "\", " + 
+      std::to_string( id ) + ", " + typeStr +  "\"" + name + "\", " +
       std::to_string( pObj->header.translation.x ) + ", " + std::to_string( pObj->header.translation.y ) + ", " + std::to_string( pObj->header.translation.z ) +
       ", " + std::to_string( eobjlevelHierachyId ) + /*getMapExdEntries( unknown ) +*/ "\n"
    );
@@ -343,7 +406,7 @@ int main( int argc, char* argv[] )
 
    std::vector< std::string > argVec( argv + 1, argv + argc );
    // todo: support expansions
-   std::string zoneName = "r2t2";
+   std::string zoneName = "f1f1";
 
    bool dumpInstances = ignoreModels = std::remove_if( argVec.begin(), argVec.end(), []( auto arg ){ return arg == "--instance-dump"; } ) != argVec.end();
    ignoreModels = false;
