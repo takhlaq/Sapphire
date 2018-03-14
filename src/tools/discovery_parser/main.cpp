@@ -45,6 +45,45 @@ xiv::exd::ExdData* eData = nullptr;
 
 void readFileToBuffer( const std::string& path, std::vector< char >& buf );
 
+// discovery shit
+struct DiscoveryMap
+{
+   std::string path;
+   Image img;
+   uint16_t mapScale;
+   int16_t mapOffsetX, mapOffsetY;
+   constexpr static int discoveryMapRows = 3;
+   constexpr static int discoveryMapCols = 4;
+   constexpr static int tileWidth = 128;
+
+   uint32_t getColour( uint8_t mapIndex, int x, int y )
+   {
+      int col = mapIndex % ( img.width / tileWidth );
+      int row = mapIndex / ( img.width / tileWidth );
+
+      int posX = col * tileWidth;
+      int posY = row * tileWidth;
+   }
+
+   vec3 get3dPosFrom2d( int x, int y )
+   {
+      float scale2 = mapScale / 100;
+      auto x2 = ( x / scale2 ) - mapOffsetX;
+      auto y2 = ( y / scale2 ) - mapOffsetY;
+
+      vec3 ret;
+      return ret;
+   }
+
+   vec3 get2dPosFrom3d( int x, int y )
+   {
+      vec3 ret;
+      return ret;
+   }
+};
+
+std::map< std::string, DiscoveryMap > discoveryMaps;
+
 enum class TerritoryTypeExdIndexes : size_t
 {
    TerritoryType = 0,
@@ -56,33 +95,6 @@ using namespace std::chrono_literals;
 struct face
 {
    int32_t f1, f2, f3;
-};
-
-// discovery shit
-constexpr int discoveryMapRows = 3;
-constexpr int discoveryMapCols = 4;
-int mapOffsetX, mapOffsetY;
-
-struct Pos
-{
-   float x, y, z;
-
-   Pos( float x, float y, float z )
-   {
-      this->x = x;
-      this->y = y;
-      this->z = z;
-   }
-
-   static Pos to3d( int x, int y, int scale )
-   {
-      return Pos( ( x / scale ) - mapOffsetX, 0, ( y / scale ) - mapOffsetY );
-   }
-
-   static Pos to2d( float x, float y, float z, int scale )
-   {
-      return Pos( ( x * scale ) + mapOffsetX , y, ( z * scale ) + mapOffsetY );
-   }
 };
 
 // init
@@ -153,15 +165,10 @@ bool exportedImage = false;
 
 std::string getMapExdEntries( uint32_t mapId )
 {
-   std::cout << "Getting Map cat \n";
-
    static auto& cat = eData->get_category( "Map" );
-   std::cout << "Getting Map exd\n";
    static auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
    //static std::unique_ptr< Converter > pConverter = std::make_unique< Converter >();
 
-
-   std::cout << "Getting rows\n";
    static auto rows = exd.get_rows();
    for( auto& row : rows )
    {
@@ -188,43 +195,42 @@ std::string getMapExdEntries( uint32_t mapId )
       auto hierarchy = *boost::get< uint8_t >( &fields.at( 3 ) );
       auto pathStr = *boost::get< std::string >( &fields.at( 5 ) );
       auto sizeFactor = *boost::get< uint16_t >( &fields.at( 6 ) );
+      auto mapOffsetX = *boost::get< int16_t >( &fields.at( 7 ) );
+      auto mapOffsetY = *boost::get< int16_t >( &fields.at( 8 ) );
       auto discoveryIdx = *boost::get< int16_t >( &fields.at( 12 ) );
       auto discoveryCompleteBitmask = *boost::get< uint32_t >( &fields.at( 13 ) );
 
       char texStr[255];
       auto teriStr = pathStr.substr( 0, pathStr.find_first_of( '/' ) );
       sprintf( &texStr[0], "ui/map/%s/%s%02Xd.tex", pathStr.c_str(), teriStr.c_str(), mapZoneIndex );
-      auto texFile = data1->getFile( &texStr[0] );
-      std::string rawTexFile( teriStr + "0" + std::to_string( mapZoneIndex ) );
-      texFile->exportToFile( rawTexFile + "d.tex" );
-      auto tex = TEX_FILE( rawTexFile + "d.tex" );
 
-      int mipMapDivide = 1;
-      int h = tex.header.uncompressedHeight;
-      int w = tex.header.uncompressedWidth;
 
-      if( !exportedImage )
+      if( !exportedImage && discoveryMaps.find( &texStr[0] ) == discoveryMaps.end() )
       {
-         auto img = DecodeTexDXT1( tex, tex.header.mipMaps[0], h / mipMapDivide, w / mipMapDivide,
+         auto texFile = data1->getFile( &texStr[0] );
+         std::string rawTexFile( teriStr + "0" + std::to_string( mapZoneIndex ) );
+         texFile->exportToFile( rawTexFile + "d.tex" );
+         auto tex = TEX_FILE( rawTexFile + "d.tex" );
+
+         int mipMapDivide = 1;
+         int h = tex.header.uncompressedHeight;
+         int w = tex.header.uncompressedWidth;
+         DiscoveryMap discoveryMap;
+         discoveryMap.img = DecodeTexDXT1( tex, tex.header.mipMaps[0], h / mipMapDivide, w / mipMapDivide,
             ( h / mipMapDivide ) / 4, ( w / mipMapDivide ) / 4
          );
-         img.toFile( rawTexFile + ".img" );
+         
+         discoveryMap.img.toFile( rawTexFile + ".img" );
 
-         std::vector< char > buf;
-         readFileToBuffer( rawTexFile + ".img", buf );
+         discoveryMap.path = &texStr[0];
+         discoveryMap.mapOffsetX = mapOffsetX;
+         discoveryMap.mapOffsetY = mapOffsetY;
+         discoveryMap.mapScale = sizeFactor;
 
-         auto img2 = Image( buf.data() );
-
-         std::set< uint32_t > colours;
-         for( auto row : img.data )
-            for( auto colour : row )
-               colours.emplace( colour );
-
-         for( auto colour : colours )
-            std::cout << "Colour: " << colour << "\n";
-
-         std::cout << "Image Height: " << img.height << " Width: " << img.width << "\n";
+         std::cout << "Image Height: " << discoveryMap.img.height << " Width: " << discoveryMap.img.width << "\n";
          exportedImage = true;
+
+         discoveryMaps.emplace( &texStr[0], discoveryMap );
       }
       return std::string( std::to_string( mapZoneIndex ) + ", " + std::to_string( hierarchy ) + ", " + "\"" + std::string( &texStr[0] ) + "\", " +
                            std::to_string( discoveryIdx ) + ", " + std::to_string( discoveryCompleteBitmask )  );
@@ -265,7 +271,6 @@ void dumpLevelExdEntries( uint32_t zoneId, const std::string& name = std::string
 
          if( zone == zoneId )
          {
-            auto pos = Pos::to2d( x, y, z, 1 );
             std::string outStr(
                std::to_string( id ) + ", " + std::to_string( objectid ) + ", " + std::to_string( mapid ) + ", " +
                std::to_string( x ) + ", " + std::to_string( y ) + ", " + std::to_string( z ) + ", " +

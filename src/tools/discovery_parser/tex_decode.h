@@ -38,6 +38,11 @@ struct Image
    uint32_t height, width;
    std::vector< std::vector< uint32_t > > data;
 
+   Image()
+   {
+
+   }
+
    Image( int height, int width )
    {
       this->height = height;
