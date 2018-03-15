@@ -45,6 +45,8 @@ xiv::exd::ExdData* eData = nullptr;
 
 void readFileToBuffer( const std::string& path, std::vector< char >& buf );
 
+
+
 // discovery shit
 struct DiscoveryMap
 {
@@ -55,6 +57,7 @@ struct DiscoveryMap
    constexpr static int discoveryMapRows = 3;
    constexpr static int discoveryMapCols = 4;
    constexpr static int tileWidth = 128;
+   constexpr static int tiles = discoveryMapCols * discoveryMapRows;
 
    uint32_t getColour( uint8_t mapIndex, int x, int y )
    {
@@ -63,26 +66,37 @@ struct DiscoveryMap
 
       int posX = col * tileWidth;
       int posY = row * tileWidth;
+
+      auto colour = img.data[row][col];
+      auto colour2 = img.data[posY][posX];
+
+      return colour;
    }
 
    vec3 get3dPosFrom2d( int x, int y )
    {
-      float scale2 = mapScale / 100;
-      auto x2 = ( x / scale2 ) - mapOffsetX;
-      auto y2 = ( y / scale2 ) - mapOffsetY;
-
       vec3 ret;
+      float scale2 = mapScale / 100;
+      ret.x = ( x / scale2 ) - mapOffsetX;
+      ret.z = ( y / scale2 ) - mapOffsetY;
+
       return ret;
    }
 
    vec3 get2dPosFrom3d( int x, int y )
    {
       vec3 ret;
+      float scale2 = mapScale / 100;
+      ret.x = ( x * scale2 ) + mapOffsetX;
+      ret.z = ( y * scale2 ) + mapOffsetY;
+
       return ret;
    }
 };
+std::map< uint16_t, DiscoveryMap > discoveryMaps;
 
-std::map< std::string, DiscoveryMap > discoveryMaps;
+
+
 
 enum class TerritoryTypeExdIndexes : size_t
 {
@@ -160,9 +174,6 @@ int parseBlockEntry( char* data, std::vector<PCB_BLOCK_ENTRY>& entries, int gOff
    return 0;
 }
 
-
-bool exportedImage = false;
-
 std::string getMapExdEntries( uint32_t mapId )
 {
    static auto& cat = eData->get_category( "Map" );
@@ -199,13 +210,13 @@ std::string getMapExdEntries( uint32_t mapId )
       auto mapOffsetY = *boost::get< int16_t >( &fields.at( 8 ) );
       auto discoveryIdx = *boost::get< int16_t >( &fields.at( 12 ) );
       auto discoveryCompleteBitmask = *boost::get< uint32_t >( &fields.at( 13 ) );
-
+      auto territory = *boost::get< uint16_t >( &fields.at( 14 ) );
       char texStr[255];
       auto teriStr = pathStr.substr( 0, pathStr.find_first_of( '/' ) );
       sprintf( &texStr[0], "ui/map/%s/%s%02Xd.tex", pathStr.c_str(), teriStr.c_str(), mapZoneIndex );
 
 
-      if( !exportedImage && discoveryMaps.find( &texStr[0] ) == discoveryMaps.end() )
+      if( discoveryMaps.find( territory ) == discoveryMaps.end() )
       {
          auto texFile = data1->getFile( &texStr[0] );
          std::string rawTexFile( teriStr + "0" + std::to_string( mapZoneIndex ) );
@@ -228,9 +239,8 @@ std::string getMapExdEntries( uint32_t mapId )
          discoveryMap.mapScale = sizeFactor;
 
          std::cout << "Image Height: " << discoveryMap.img.height << " Width: " << discoveryMap.img.width << "\n";
-         exportedImage = true;
 
-         discoveryMaps.emplace( &texStr[0], discoveryMap );
+         discoveryMaps.emplace( territory, discoveryMap );
       }
       return std::string( std::to_string( mapZoneIndex ) + ", " + std::to_string( hierarchy ) + ", " + "\"" + std::string( &texStr[0] ) + "\", " +
                            std::to_string( discoveryIdx ) + ", " + std::to_string( discoveryCompleteBitmask )  );
@@ -377,6 +387,46 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
    unknown2 = pMapRange->header.unknown3;
    typeStr = mapRangeStr;
 
+   // discovery shit
+   vec3 pos;
+   auto subArea = 0;
+   bool found = false;
+   auto it = discoveryMaps.find( zoneId );
+   if( it != discoveryMaps.end() )
+   {
+      auto map = it->second;
+      pos = map.get2dPosFrom3d( pObj->header.translation.x, pObj->header.translation.y );
+
+      for( auto i = 0; i < map.tiles; ++i )
+      {
+         auto colour = map.getColour( i, pos.z, pos.z );
+
+         auto r = ( colour >> 16 ) & 0xFF;
+         auto g = ( colour >> 8 ) & 0xFF;
+         auto b = ( colour >> 0 ) & 0xFF;
+
+         if( ( found = ( r != 0 || g != 0 || b != 0 ) ) )
+         {
+            if( r == 0xFF )
+            {
+               // out of bounds
+               if( i == 0 )
+                  subArea = -1;
+               else
+                  subArea = i * 3 + 1;
+            }
+            else if( g == 0xFF )
+            {
+               subArea = i * 3 + 2;
+            }
+            else if( b == 0xFF )
+            {
+               subArea = i * 3 + 3;
+            }
+            break;
+         }
+      }
+   }
 
    std::string outStr(
       std::to_string( id ) + ", " + typeStr +  "\"" + name + "\", " +
