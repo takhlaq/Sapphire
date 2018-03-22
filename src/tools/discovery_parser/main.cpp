@@ -48,6 +48,11 @@ void readFileToBuffer( const std::string& path, std::vector< char >& buf );
 
 
 // discovery shit
+struct vec2
+{
+   float x, y;
+};
+
 struct DiscoveryMap
 {
    std::string path;
@@ -59,36 +64,42 @@ struct DiscoveryMap
    constexpr static int tileWidth = 128;
    constexpr static int tiles = discoveryMapCols * discoveryMapRows;
 
-   uint32_t getColour( uint8_t mapIndex, int x, int y )
+   uint32_t getColour( uint8_t mapIndex, float x, float y )
    {
-      int col = mapIndex % ( img.width / tileWidth );
-      int row = mapIndex / ( img.width / tileWidth );
+      int col = mapIndex % (img.width / tileWidth);
+      int row = mapIndex / (img.width / tileWidth);
+      x = ( x / 2048.0f ) * (float)tileWidth;
+      y = ( y / 2048.0f ) * (float)tileWidth;
+      int tileX = (col * tileWidth) + x;
+      int tileY = ( row * tileWidth ) + y;
 
-      int posX = col * tileWidth;
-      int posY = row * tileWidth;
-
-      auto colour = img.data[row][col];
-      auto colour2 = img.data[posY][posX];
+      std::cout << "getColour col " << col << " row " << row << " tileX " << tileX << " tileY " << tileY << " tile index " << std::to_string( mapIndex ) << "\n";
+      auto colour = img.data[tileY][tileX];
 
       return colour;
    }
 
-   vec3 get3dPosFrom2d( int x, int y )
+   vec3 get3dPosFrom2d( float x, float y )
    {
       vec3 ret;
       float scale2 = mapScale / 100;
-      ret.x = ( x / scale2 ) - mapOffsetX;
-      ret.z = ( y / scale2 ) - mapOffsetY;
+      ret.x = ( x * scale2 ) + ( img.height * 2 ); //( x / scale2 ) - mapOffsetX;
+      ret.z = ( y * scale2 ) + ( img.height * 2 ); //( y / scale2 ) - mapOffsetY;
 
       return ret;
    }
 
-   vec3 get2dPosFrom3d( int x, int y )
+   vec2 get2dPosFrom3d( float x, float y )
    {
-      vec3 ret;
+      //int a = (mapPictureBox.Height / 2) + (x / (System.Convert.ToInt32(myMap.sizeFactor) / 100));
+      //int b = (mapPictureBox.Height / 2) + (y / (System.Convert.ToInt32(myMap.sizeFactor) / 100));
+
+      vec2 ret;
       float scale2 = mapScale / 100;
-      ret.x = ( x * scale2 ) + mapOffsetX;
-      ret.z = ( y * scale2 ) + mapOffsetY;
+      ret.x = ( x / scale2 ) + (2048.f /2);
+      ret.y = ( y / scale2 ) + (2048.f /2);
+      //ret.x = ( x * scale2 ) + mapOffsetX;
+      //ret.y = ( y * scale2 ) + mapOffsetY;
 
       return ret;
    }
@@ -388,22 +399,26 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
    typeStr = mapRangeStr;
 
    // discovery shit
-   vec3 pos;
-   auto subArea = 0;
+   vec2 pos;
+   auto subArea = -1;
    bool found = false;
    auto it = discoveryMaps.find( zoneId );
    if( it != discoveryMaps.end() )
    {
       auto map = it->second;
-      pos = map.get2dPosFrom3d( pObj->header.translation.x, pObj->header.translation.y );
+      pos = map.get2dPosFrom3d( pObj->header.translation.x, pObj->header.translation.z );
 
+      std::cout << "3d coords " << pObj->header.translation.x << " " << pObj->header.translation.z << "\n";
+      std::cout << "2d coords " << pos.x << " " << pos.y << "\n";
       for( auto i = 0; i < map.tiles; ++i )
       {
-         auto colour = map.getColour( i, pos.z, pos.z );
+         auto colour = map.getColour( i, pos.x, pos.y );
 
          auto r = ( colour >> 16 ) & 0xFF;
          auto g = ( colour >> 8 ) & 0xFF;
          auto b = ( colour >> 0 ) & 0xFF;
+
+         std::cout << "R " << r << " G " << g << " B " << b << "\n";
 
          if( ( found = ( r != 0 || g != 0 || b != 0 ) ) )
          {
@@ -411,9 +426,8 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
             {
                // out of bounds
                if( i == 0 )
-                  subArea = -1;
-               else
-                  subArea = i * 3 + 1;
+                  break;
+               subArea = i * 3 + 1;
             }
             else if( g == 0xFF )
             {
@@ -427,11 +441,10 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
          }
       }
    }
-
    std::string outStr(
       std::to_string( id ) + ", " + typeStr +  "\"" + name + "\", " +
       std::to_string( pObj->header.translation.x ) + ", " + std::to_string( pObj->header.translation.y ) + ", " + std::to_string( pObj->header.translation.z ) +
-      ", " + std::to_string( eobjlevelHierachyId ) + /*getMapExdEntries( unknown ) +*/ "\n"
+      ", " + std::to_string( eobjlevelHierachyId ) + ", " + std::to_string( subArea ) + /*getMapExdEntries( unknown ) +*/ "\n"
    );
    out.write( outStr.c_str(), outStr.size() );
 }

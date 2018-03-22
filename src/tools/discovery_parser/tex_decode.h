@@ -23,7 +23,7 @@ struct Colour
 
    uint32_t getRGB()
    {
-      return ( a << 24 ) | ( r << 16 ) | ( g << 8 ) << ( b << 0 );
+      return ( a << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b << 0 );
    }
 };
 
