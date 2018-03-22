@@ -59,6 +59,7 @@ struct DiscoveryMap
    Image img;
    uint16_t mapScale;
    int16_t mapOffsetX, mapOffsetY;
+   int mapId;
    constexpr static int discoveryMapRows = 3;
    constexpr static int discoveryMapCols = 4;
    constexpr static int tileWidth = 128;
@@ -66,6 +67,7 @@ struct DiscoveryMap
 
    uint32_t getColour( uint8_t mapIndex, float x, float y )
    {
+      auto ogX = x, ogY = y;
       int col = mapIndex % (img.width / tileWidth);
       int row = mapIndex / (img.width / tileWidth);
       x = ( x / 2048.0f ) * (float)tileWidth;
@@ -73,7 +75,13 @@ struct DiscoveryMap
       int tileX = (col * tileWidth) + x;
       int tileY = ( row * tileWidth ) + y;
 
-      std::cout << "getColour col " << col << " row " << row << " tileX " << tileX << " tileY " << tileY << " tile index " << std::to_string( mapIndex ) << "\n";
+      if (tileX < 0 || tileY < 0)
+      {
+         std::cout << "Unable to find tile coord for " << x << " " << y << " mapIndex " << mapIndex << "\n";
+         return 0;
+      }
+
+      //std::cout << "getColour col " << col << " row " << row << " tileX " << tileX << " tileY " << tileY << " tile index " << std::to_string( mapIndex ) << "\n";
       auto colour = img.data[tileY][tileX];
 
       return colour;
@@ -96,8 +104,8 @@ struct DiscoveryMap
 
       vec2 ret;
       float scale2 = mapScale / 100;
-      ret.x = ( x / scale2 ) + (2048.f /2);
-      ret.y = ( y / scale2 ) + (2048.f /2);
+      ret.x = ( x * scale2 ) + (2048.f /2);
+      ret.y = ( y * scale2 ) + (2048.f /2);
       //ret.x = ( x * scale2 ) + mapOffsetX;
       //ret.y = ( y * scale2 ) + mapOffsetY;
 
@@ -188,10 +196,10 @@ int parseBlockEntry( char* data, std::vector<PCB_BLOCK_ENTRY>& entries, int gOff
 std::string getMapExdEntries( uint32_t mapId )
 {
    static auto& cat = eData->get_category( "Map" );
-   static auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
+   static auto& exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
    //static std::unique_ptr< Converter > pConverter = std::make_unique< Converter >();
 
-   static auto rows = exd.get_rows();
+   static auto& rows = exd.get_rows();
    for( auto& row : rows )
    {
       // fields from SaintCoinach https://github.com/ufx/SaintCoinach/blob/master/SaintCoinach/ex.json#L6358
@@ -243,7 +251,7 @@ std::string getMapExdEntries( uint32_t mapId )
          );
          
          discoveryMap.img.toFile( rawTexFile + ".img" );
-
+         discoveryMap.mapId = id;
          discoveryMap.path = &texStr[0];
          discoveryMap.mapOffsetX = mapOffsetX;
          discoveryMap.mapOffsetY = mapOffsetY;
@@ -262,7 +270,7 @@ std::string getMapExdEntries( uint32_t mapId )
 void dumpLevelExdEntries( uint32_t zoneId, const std::string& name = std::string() )
 {
    static auto& cat = eData->get_category( "Level" );
-   static auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
+   static auto& exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
 
    std::string fileName( name + "_" + std::to_string( zoneId ) + "_Level" + ".csv" );
    std::ofstream outfile( fileName, std::ios::trunc );
@@ -275,7 +283,7 @@ void dumpLevelExdEntries( uint32_t zoneId, const std::string& name = std::string
       static std::string header( levelHeader + "mapZoneIdx, hierarchy, path, size, discoveryIdx, discoveryCompleteBitmask \n" );
       outfile.write( header.c_str(), header.size() );
 
-      static auto rows = exd.get_rows();
+      static auto& rows = exd.get_rows();
       for( auto& row : rows )
       {
          auto id = row.first;
@@ -334,9 +342,10 @@ std::string zoneNameToPath( const std::string& name )
    }
 #else
 
-   auto& cat = eData->get_category( "TerritoryType" );
-   auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
-   for( auto& row : exd.get_rows() )
+   static auto& cat = eData->get_category( "TerritoryType" );
+   static auto& exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::none ) );
+   static auto& rows = exd.get_rows();
+   for( auto& row : rows )
    {
       auto& fields = row.second;
       auto teriName = *boost::get< std::string >( &fields.at( static_cast< size_t >( TerritoryTypeExdIndexes::TerritoryType ) ) );
@@ -372,7 +381,7 @@ std::string zoneNameToPath( const std::string& name )
 void loadEobjNames()
 {
    auto& cat = eData->get_category( "EObjName" );
-   auto exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::en ) );
+   auto& exd = static_cast< xiv::exd::Exd >( cat.get_data_ln( xiv::exd::Language::en ) );
    for( auto& row : exd.get_rows() )
    {
       auto id = row.first;
@@ -385,7 +394,7 @@ void loadEobjNames()
 void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
 {
    static std::string mapRangeStr( "\"MapRange\", " );
-
+   static std::ofstream discoverySql( "discovery.sql" , std::ios::app );
    uint32_t id;
    uint32_t unknown = 0, unknown2 = 0;
    std::string name;
@@ -401,15 +410,18 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
    // discovery shit
    vec2 pos;
    auto subArea = -1;
+   auto mapId = -1;
+
    bool found = false;
    auto it = discoveryMaps.find( zoneId );
    if( it != discoveryMaps.end() )
    {
       auto map = it->second;
       pos = map.get2dPosFrom3d( pObj->header.translation.x, pObj->header.translation.z );
+      mapId = map.mapId;
 
-      std::cout << "3d coords " << pObj->header.translation.x << " " << pObj->header.translation.z << "\n";
-      std::cout << "2d coords " << pos.x << " " << pos.y << "\n";
+      //std::cout << "3d coords " << pObj->header.translation.x << " " << pObj->header.translation.z << "\n";
+      //std::cout << "2d coords " << pos.x << " " << pos.y << "\n";
       for( auto i = 0; i < map.tiles; ++i )
       {
          auto colour = map.getColour( i, pos.x, pos.y );
@@ -418,7 +430,7 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
          auto g = ( colour >> 8 ) & 0xFF;
          auto b = ( colour >> 0 ) & 0xFF;
 
-         std::cout << "R " << r << " G " << g << " B " << b << "\n";
+         //std::cout << "R " << r << " G " << g << " B " << b << "\n";
 
          if( ( found = ( r != 0 || g != 0 || b != 0 ) ) )
          {
@@ -441,12 +453,20 @@ void writeEobjEntry( std::ofstream& out, LGB_ENTRY* pObj )
          }
       }
    }
-   std::string outStr(
-      std::to_string( id ) + ", " + typeStr +  "\"" + name + "\", " +
-      std::to_string( pObj->header.translation.x ) + ", " + std::to_string( pObj->header.translation.y ) + ", " + std::to_string( pObj->header.translation.z ) +
-      ", " + std::to_string( eobjlevelHierachyId ) + ", " + std::to_string( subArea ) + /*getMapExdEntries( unknown ) +*/ "\n"
+   subArea--;
+
+   if( subArea == -2 || mapId == -1 )
+   {
+      std::cout << "\tUnable to find subarea for maprange " << std::to_string( id ) << "\n";
+      return;
+   }
+   std::string outStr( "INSERT INTO discoveryinfo VALUES (" +
+      std::to_string( id ) + ", " + std::to_string( mapId ) + ", " + std::to_string( subArea ) + ");\n"
+      //std::to_string( pObj->header.translation.x ) + ", " + std::to_string( pObj->header.translation.y ) + ", " + std::to_string( pObj->header.translation.z ) +
+      //", " + std::to_string( subArea ) + "" + "\n"
    );
-   out.write( outStr.c_str(), outStr.size() );
+   discoverySql.write( outStr.c_str(), outStr.size() );
+   //out.write( outStr.c_str(), outStr.size() );
 }
 
 void readFileToBuffer( const std::string& path, std::vector< char >& buf )
@@ -476,7 +496,8 @@ int main( int argc, char* argv[] )
    // todo: support expansions
    std::string zoneName = "f1f1";
 
-   bool dumpInstances = ignoreModels = std::remove_if( argVec.begin(), argVec.end(), []( auto arg ){ return arg == "--instance-dump"; } ) != argVec.end();
+   bool dumpAll = ignoreModels = std::remove_if( argVec.begin(), argVec.end(), []( auto arg ){ return arg == "--dump-all"; } ) != argVec.end();
+   dumpAll = true;
    ignoreModels = false;
    if( argc > 1 )
    {
@@ -490,9 +511,15 @@ int main( int argc, char* argv[] )
    }
 
    initExd( gamePath );
-   if( dumpInstances )
+   std::ofstream discoverySql( "discovery.sql", std::ios::trunc );
+   discoverySql.close();
+
+   if( dumpAll )
    {
-      //loadAllInstanceContentEntries();
+      zoneNameToPath( "f1t1" );
+
+      for( const auto& zone : zoneNameMap )
+         zoneDumpList.emplace( zone.second );
    }
    else
    {
@@ -575,13 +602,14 @@ LABEL_DUMP:
       uint32_t max_index = 0;
 
       // dont bother if we cant write to a file
-      auto fp_out = ignoreModels ? ( FILE* )nullptr : fopen( ( zoneName + ".obj" ).c_str(), "w" );
+      FILE* fp_out = nullptr;
+      //auto fp_out = ignoreModels ? ( FILE* )nullptr : fopen( ( zoneName + ".obj" ).c_str(), "w" );
       if( fp_out )
       {
          fprintf( fp_out, "\n" );
          fclose( fp_out );
       }
-      else if( !ignoreModels )
+      else if( /*!ignoreModels*/ false )
       {
          std::string errorMessage( "Cannot create " + zoneName + ".obj\n" +
             " Check no programs have a handle to file and run as admin.\n" );
