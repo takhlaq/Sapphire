@@ -18,7 +18,7 @@ target_link_libraries( sapphire_zone common )
 
 if (UNIX)
   target_link_libraries( sapphire_zone pthread )
-  target_link_libraries( sapphire_zone dl )
+  target_link_libraries( sapphire_zone dl boost_system)
 endif()
 
 target_include_directories( sapphire_zone PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" )
