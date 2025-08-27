@@ -2239,7 +2239,7 @@
     "curePotency": 300,
     "restorePercentage": 0,
     "nextCombo": [],
-    "targetFilter": 0,
+    "targetFilter": 3,
     "aggroModifier": 0.5,
     "statuses": {
       "caster": [],

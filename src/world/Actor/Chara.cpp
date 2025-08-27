@@ -30,6 +30,8 @@
 #include "Navi/NaviProvider.h"
 #include "Common.h"
 
+#include "AI/TargetHelper.h"
+
 using namespace Sapphire;
 using namespace Sapphire::Common;
 using namespace Sapphire::Entity;
@@ -926,14 +928,20 @@ bool Chara::isFacingTarget( const Chara& other, float threshold )
   return dot >= threshold;
 }
 
-bool Sapphire::Entity::Chara::isHostile( const Chara& chara )
+bool Sapphire::Entity::Chara::isHostile( Chara& chara )
 {
-  return m_objKind != chara.getObjKind();
+  const static auto pBattalionFilter = std::make_shared< World::AI::OwnBattalionFilter >();
+  auto pChara = getAsChara();
+  auto pTarget = chara.getAsChara();
+  return !pBattalionFilter->isApplicable( pChara, pTarget );
 }
 
-bool Sapphire::Entity::Chara::isFriendly( const Chara& chara )
+bool Sapphire::Entity::Chara::isFriendly( Chara& chara )
 {
-  return m_objKind == chara.getObjKind();
+  const static auto pBattalionFilter = std::make_shared< World::AI::OwnBattalionFilter >();
+  auto pChara = getAsChara();
+  auto pTarget = chara.getAsChara();
+  return pTarget == pChara || pBattalionFilter->isApplicable( pChara, pTarget );
 }
 
 void Chara::onTick()

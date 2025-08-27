@@ -36,7 +36,7 @@ namespace Sapphire::World::AI
     bool ret = false;
     // todo: pets, companions, enpc
 
-    if( pSrc == pTarget)
+    if( pSrc == pTarget )
     {
       ret = true;
     }
@@ -73,13 +73,13 @@ namespace Sapphire::World::AI
     {
       if( pTarget->isPlayer() )
         ret = true;
-      else if( pTarget->isBattleNpc() && pTarget->getAsBNpc()->getEnemyType() == Common::Friendly )
+      else if( pTarget->isBattleNpc() && pTarget->getAsBNpc()->getEnemyType() == Common::BNpcType::Friendly )
         ret = true;
     }
     // if source is bnpc, players
     else if( auto pBNpc = pSrc->getAsBNpc() )
     {
-      if( pTarget->isPlayer() && pBNpc->getEnemyType() == Common::Friendly )
+      if( pTarget->isPlayer() && pBNpc->getEnemyType() == Common::BNpcType::Friendly )
         ret = true;
       else if( pTarget->isBattleNpc() && pTarget->getAsBNpc()->getEnemyType() == pBNpc->getEnemyType() )
         ret = true;
@@ -160,27 +160,28 @@ namespace Sapphire::World::AI
   bool PartyMemberFilter::isApplicable( Entity::CharaPtr& pSrc, Entity::CharaPtr& pTarget ) const
   {
     bool ret = false;
+    // todo: pets, companions, enpc
     if( pSrc == pTarget )
     {
       ret = true;
     }
-    // todo: pets, companions, enpc
     else if( auto pPlayer = pSrc->getAsPlayer() )
     {
       if( auto pTargetPlayer = pTarget->getAsPlayer() )
       {
         ret = pPlayer->getPartyId() != 0 && pPlayer->getPartyId() == pTargetPlayer->getPartyId();
       }
-      else if( auto pBNpc = pTarget->getAsBNpc() )
-      {
-        ret = pBNpc->getBNpcType() == 0;
-      }
+      // todo: green bnpcs in quest battles and duties count as party members
     }
     else if( auto pBNpc = pSrc->getAsBNpc() )
     {
       if( auto pTargetBNpc = pTarget->getAsBNpc() )
       {
         ret = pBNpc->getBNpcType() == pTargetBNpc->getEnemyType();
+      }
+      else if( auto pPlayer = pTarget->getAsPlayer() )
+      {
+        ret = pBNpc->getEnemyType() == Common::BNpcType::Friendly;
       }
     }
     return m_negate ? !ret : ret;

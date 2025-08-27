@@ -222,6 +222,7 @@ namespace Sapphire::Entity
     bool m_roamTargetReached{ false };
 
     Common::FFXIVARR_POSITION3 m_spawnPos;
+    float m_spawnRot;
     Common::FFXIVARR_POSITION3 m_roamPos;
     Common::FFXIVARR_POSITION3 m_lastPos;
 

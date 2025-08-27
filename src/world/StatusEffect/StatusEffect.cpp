@@ -173,13 +173,13 @@ void Sapphire::StatusEffect::StatusEffect::onTick()
               float damageVal = dmg.first;
               Common::CalcResultType damageType = dmg.second;
 
-              statusEffectMgr.damage( m_sourceActor, pChara, static_cast< int32_t >( damageVal ) );
+              statusEffectMgr.damage( m_sourceActor, pChara, static_cast< uint32_t >( damageVal ) );
               break;
             }
             case Common::GroundAOEType::Heal:
             {
               // dont wanna heal enemies
-              if( !pPartyFilter->isApplicable( m_sourceActor, pChara ) )
+              if( !pPartyFilter->isApplicable( m_sourceActor, pChara ) && m_sourceActor != pChara )
                 continue;
 
               auto heal = Math::CalcStats::calcActionHealing( *m_sourceActor, potency, wepDmg );

@@ -39,6 +39,8 @@
 #include "Job/Warrior.h"
 #include "Job/Bard.h"
 
+#include <AI/TargetHelper.h>
+
 using namespace Sapphire;
 using namespace Sapphire::Common;
 using namespace Sapphire::Network;
@@ -1035,13 +1037,20 @@ bool Action::Action::preFilterActor( Entity::GameObject& actor ) const
     return true;
 
   auto kind = actor.getObjKind();
-  auto chara = actor.getAsChara();
+  auto pTargetChara = actor.getAsChara();
+  auto pSrcChara = getSourceChara();
 
   // todo: are there any server side eobjs that players can hit?
   if( kind != ObjKind::BattleNpc && kind != ObjKind::Player )
     return false;
 
+  const static auto pBattalionFilter = std::make_shared< World::AI::OwnBattalionFilter >();
+  const static auto pPartyFilter = std::make_shared< World::AI::PartyMemberFilter >();
+
+  const auto& actionData = getActionData()->data();
+
   bool actorApplicable = false;
+
   switch( m_lutEntry.targetFilter )
   {
     case Common::TargetFilter::All:
@@ -1057,41 +1066,30 @@ bool Action::Action::preFilterActor( Entity::GameObject& actor ) const
     case Common::TargetFilter::Allies:
     {
       // Todo: Make this work for allies properly
-      actorApplicable = kind != ObjKind::BattleNpc;
+      actorApplicable = pBattalionFilter->isApplicable( pSrcChara, pTargetChara ) || actionData.SelectMyself && pSrcChara == pTargetChara;
       break;
     }
     case Common::TargetFilter::Party:
     {
-      auto pPlayer = m_pSource->getAsPlayer();
-      if( pPlayer && pPlayer->getPartyId() != 0 )
-      {
-        auto& partyMgr = Common::Service< World::Manager::PartyMgr >::ref();
-        // Get party members
-        auto pParty = partyMgr.getParty( pPlayer->getPartyId() );
-        assert( pParty );
-
-        for( const auto& id : pParty->MemberId )
-        {
-          if( id == actor.getId() )
-          {
-            actorApplicable = true;
-            break;
-          }
-        }
-      }
+      // todo: should self be included in this?
+      actorApplicable = pPartyFilter->isApplicable( pSrcChara, pTargetChara ) || actionData.SelectMyself && pSrcChara == pTargetChara;
       break;
     }
     case Common::TargetFilter::Enemies:
     {
-      actorApplicable = kind == ObjKind::BattleNpc;
+      actorApplicable = !pBattalionFilter->isApplicable( pSrcChara, pTargetChara );
       break;
     }
   }
-  
-  if( chara->isAlive() && ( m_lutEntry.curePotency > 0 || m_canTargetFriendly ) && m_pSource->isFriendly( *chara ) )
+
+  bool isAlive = pTargetChara->isAlive();
+  bool selfTarget = pSrcChara == pTargetChara;
+  bool isFriendly = pSrcChara->isFriendly( *pTargetChara );
+
+  if( isAlive && ( m_lutEntry.curePotency > 0 || m_canTargetFriendly ) && ( selfTarget || isFriendly ) )
     return actorApplicable;
 
-  if( chara->isAlive() && ( m_lutEntry.potency > 0 || m_canTargetHostile ) > 0 && m_pSource->isHostile( *chara ) )
+  if( isAlive && ( m_lutEntry.potency > 0 || m_canTargetHostile ) > 0 && !isFriendly )
     return actorApplicable;
 
   return false;

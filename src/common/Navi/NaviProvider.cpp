@@ -613,7 +613,7 @@ int32_t Sapphire::Common::Navi::NaviProvider::addAgent( const Common::FFXIVARR_P
   std::memset( &params, 0, sizeof( params ) );
   params.height = 3.f;
   params.maxAcceleration = 25.f;
-  params.maxSpeed = (std::pow( 2.f, 1.f * 0.35f ) + 1.f)*0.5f;
+  params.maxSpeed = 2.f;//( std::pow( 2.f, 1.f * 0.35f ) + 1.f ) * 0.5f;
   params.radius = radius * 0.75f;
   params.collisionQueryRange = params.radius * 12.0f;
   params.pathOptimizationRange = params.radius * 20.0f;
@@ -631,7 +631,7 @@ void Sapphire::Common::Navi::NaviProvider::updateAgentParameters( int32_t naviAg
   std::memset( &params, 0, sizeof( params ) );
   params.height = 3.f;
   params.maxAcceleration = 25.f;
-  params.maxSpeed = (std::pow( 2.f, 1.f * 0.35f ) + 1.f)*0.5f;
+  params.maxSpeed = 2.f;//(std::pow( 2.f, 1.f * 0.35f ) + 1.f)*0.5f;
   if( isRunning )
     params.maxSpeed *= 2;
   params.radius = ( radius ) * 0.75f;

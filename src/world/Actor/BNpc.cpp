@@ -129,6 +129,7 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   m_territoryId = zone.getGuId();
 
   m_spawnPos = m_pos;
+  m_spawnRot = m_rot;
 
   m_timeOfDeath = 0;
   m_targetId = Common::INVALID_GAME_OBJECT_ID64;
@@ -243,6 +244,7 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   m_class = ClassJob::Gladiator;
 
   m_spawnPos = m_pos;
+  m_spawnRot = m_rot;
 
   m_timeOfDeath = 0;
   m_targetId = Common::INVALID_GAME_OBJECT_ID64;
