@@ -283,6 +283,12 @@ namespace Sapphire
               pCondition->from_json( scV, schedule, condition, actorNameMap );
             }
             break;
+            case ConditionType::InterruptedAction:
+            {
+              pCondition = std::make_shared< ConditionInterruptedAction >();
+              pCondition->from_json( scV, schedule, condition, actorNameMap );
+            }
+            break;
             default:
               break;
           }
@@ -330,7 +336,8 @@ namespace Sapphire
       { "bnpcHasFlags",             ConditionType::BNpcHasFlags },
 
       { "getAction",                ConditionType::GetAction },
-      { "scheduleActive",           ConditionType::ScheduleActive }
+      { "scheduleActive",           ConditionType::ScheduleActive },
+      { "interruptedAction",        ConditionType::InterruptedAction }
     };
 
     auto pack = std::make_shared< TimelinePack >();
@@ -451,7 +458,7 @@ namespace Sapphire
               pCondition = std::make_shared< ConditionHp >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
-              break;
+            break;
             case ConditionType::DirectorVarEquals:
             case ConditionType::DirectorVarGreaterThan:
             case ConditionType::DirectorFlagsEquals:
@@ -463,31 +470,37 @@ namespace Sapphire
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
 
             }
-              break;
+            break;
             case ConditionType::EncounterTimeElapsed:
             {
               pCondition = std::make_shared< ConditionEncounterTimeElapsed >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
-              break;
+            break;
             case ConditionType::CombatState:
             {
               pCondition = std::make_shared< ConditionCombatState >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
-              break;
+            break;
             case ConditionType::GetAction:
             {
               pCondition = std::make_shared< ConditionGetAction >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
-              break;
+            break;
             case ConditionType::ScheduleActive:
             {
               pCondition = std::make_shared< ConditionScheduleActive >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
-              break;
+            break;
+            case ConditionType::InterruptedAction:
+            {
+              pCondition = std::make_shared< ConditionInterruptedAction >();
+              pCondition->from_json( pcV, schedule, condition, actorNameMap );
+            }
+            break;
             default:
               break;
           }

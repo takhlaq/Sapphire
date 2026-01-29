@@ -35,7 +35,8 @@ namespace Sapphire
     BNpcHasFlags,
 
     GetAction,
-    ScheduleActive
+    ScheduleActive,
+    InterruptedAction
   };
 
   class Schedule : public std::enable_shared_from_this< Schedule >
@@ -236,6 +237,16 @@ namespace Sapphire
   public:
     std::string m_actorName;
     std::string m_scheduleName;
+
+    void from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors ) override;
+    bool isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const override;
+  };
+
+  class ConditionInterruptedAction : public ScheduleCondition
+  {
+  public:
+    uint32_t m_layoutId;
+    uint32_t m_actionId;
 
     void from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors ) override;
     bool isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const override;

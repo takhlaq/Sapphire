@@ -69,7 +69,6 @@ namespace Sapphire
     auto pTeri = pEncounter->getTeriPtr();
     auto pBNpc = pTeri->getActiveBNpcByLayoutId( m_layoutId );
 
-
     if( !pBNpc )
     {
       return false;
@@ -128,6 +127,19 @@ namespace Sapphire
   bool ConditionScheduleActive::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
   {
     return pack.isScheduleActive( m_actorName, m_scheduleName );
+  }
+
+  bool ConditionInterruptedAction::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
+  {
+    auto pTeri = pEncounter->getTeriPtr();
+    auto pBNpc = pTeri->getActiveBNpcByLayoutId( m_layoutId );
+
+    if( pBNpc )
+    {
+      auto pAction = pBNpc->getCurrentAction();
+      return pAction && pAction->getId() == m_actionId && pAction->isInterrupted();
+    }
+    return false;
   }
 
   void ConditionHp::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition,
@@ -267,6 +279,23 @@ namespace Sapphire
     m_scheduleName = scheduleName;
   }
 
+  void ConditionInterruptedAction::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors )
+  {
+    ScheduleCondition::from_json( json, phase, condition, actors );
+
+    auto& paramData = json.at( "paramData" );
+    auto actorRef = paramData.at( "sourceActor" ).get< std::string >();
+    auto actionId = paramData.at( "actionId" ).get< std::uint32_t >();
+
+    // resolve the actor whose name we are checking
+    if( auto it = actors.find( actorRef ); it != actors.end() )
+      m_layoutId = it->second.m_layoutId;
+    else
+      throw std::runtime_error( fmt::format( std::string( "ConditionCombatState::from_json unable to find actor by name: %s" ), actorRef ) );
+
+    m_actionId = actionId;
+  }
+
   // todo: i wrote this very sleep deprived, ensure it is actually sane
 
   void Schedule::execute( ConditionState& state, TimelineActor& self, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
@@ -311,4 +340,4 @@ namespace Sapphire
   {
     return state.m_scheduleInfo.m_lastTimepointIndex == m_timepoints.size();
   }
-}// namespace Sapphire::Encounter
+} // namespace Sapphire

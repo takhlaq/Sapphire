@@ -294,12 +294,12 @@
               "data": {
                 "actorName": "Ifrit",
                 "pos": [
-                  0,
-                  0,
-                  0
+                  0.0,
+                  0.0,
+                  0.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -559,12 +559,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 1>",
                 "pos": [
-                  0,
-                  0,
-                  0
+                  0.0,
+                  0.0,
+                  0.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "Eruption",
                 "targetActor": "<unknown>",
@@ -605,12 +605,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 1>",
                 "pos": [
-                  -5,
-                  0,
-                  5
+                  -5.0,
+                  0.0,
+                  5.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -624,12 +624,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 2>",
                 "pos": [
-                  -5,
-                  0,
-                  -5
+                  -5.0,
+                  0.0,
+                  -5.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -643,12 +643,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 3>",
                 "pos": [
-                  5,
-                  0,
-                  5
+                  5.0,
+                  0.0,
+                  5.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -662,12 +662,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 4>",
                 "pos": [
-                  5,
-                  0,
-                  -5
+                  5.0,
+                  0.0,
+                  -5.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -754,12 +754,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 1>",
                 "pos": [
-                  0,
-                  0,
-                  -20
+                  0.0,
+                  0.0,
+                  -20.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -773,12 +773,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 2>",
                 "pos": [
-                  0,
-                  0,
-                  20
+                  0.0,
+                  0.0,
+                  20.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -792,12 +792,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 3>",
                 "pos": [
-                  -20,
-                  0,
-                  0
+                  -20.0,
+                  0.0,
+                  0.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -811,12 +811,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 4>",
                 "pos": [
-                  20,
-                  0,
-                  0
+                  20.0,
+                  0.0,
+                  0.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -830,12 +830,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 5>",
                 "pos": [
-                  -15,
-                  0,
-                  15
+                  -15.0,
+                  0.0,
+                  15.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -849,12 +849,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 6>",
                 "pos": [
-                  -15,
-                  0,
-                  -15
+                  -15.0,
+                  0.0,
+                  -15.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -868,12 +868,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 7>",
                 "pos": [
-                  15,
-                  0,
-                  -15
+                  15.0,
+                  0.0,
+                  -15.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -887,12 +887,12 @@
               "data": {
                 "actorName": "Ifrit Control <subactor 8>",
                 "pos": [
-                  15,
-                  0,
-                  15
+                  15.0,
+                  0.0,
+                  15.0
                 ],
                 "positionType": "absolute",
-                "rot": 0,
+                "rot": 0.0,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
                 "targetActor": "<unknown>",
@@ -1023,6 +1023,113 @@
               "description": "",
               "startTime": 0,
               "type": "setCondition"
+            }
+          ]
+        },
+        {
+          "description": "",
+          "id": 4,
+          "name": "Interrupt Eruption",
+          "timepoints": [
+            {
+              "data": {
+                "actionId": 733,
+                "sourceActor": "Ifrit Control <subactor 1>"
+              },
+              "description": "Interrupted Action 455 -> interrupt subactor 1 Action 733",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {},
+              "description": "",
+              "startTime": 8000,
+              "type": "idle"
+            }
+          ]
+        },
+        {
+          "description": "",
+          "id": 5,
+          "name": "Interrupt Plumes",
+          "timepoints": [
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 1>"
+              },
+              "description": "Interrupt Plumes Action 456 -> Interrupt Subactor 1 Action 734",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 2>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 3>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 4>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 5>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 6>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 7>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {
+                "actionId": 734,
+                "sourceActor": "Ifrit Control <subactor 8>"
+              },
+              "description": "",
+              "startTime": 0,
+              "type": "interruptAction"
+            },
+            {
+              "data": {},
+              "description": "",
+              "startTime": 8000,
+              "type": "idle"
             }
           ]
         }
@@ -1235,6 +1342,32 @@
       },
       "targetActor": "Ifrit",
       "targetSchedule": "Reset"
+    },
+    {
+      "condition": "interruptedAction",
+      "description": "",
+      "enabled": true,
+      "id": 15,
+      "loop": true,
+      "paramData": {
+        "actionId": 455,
+        "sourceActor": "Ifrit"
+      },
+      "targetActor": "Ifrit Control",
+      "targetSchedule": "Interrupt Eruption"
+    },
+    {
+      "condition": "interruptedAction",
+      "description": "",
+      "enabled": true,
+      "id": 16,
+      "loop": true,
+      "paramData": {
+        "actionId": 456,
+        "sourceActor": "Ifrit"
+      },
+      "targetActor": "Ifrit Control",
+      "targetSchedule": "Interrupt Plumes"
     }
   ],
   "name": "Brand new timeline",
@@ -1262,5 +1395,5 @@
       "name": "Eruption"
     }
   ],
-  "version": 10
+  "version": 11
 }

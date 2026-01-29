@@ -39,7 +39,8 @@ namespace Sapphire
 
     SetCondition,
 
-    Snapshot
+    Snapshot,
+    InterruptAction
   };
 
   enum class ActionTargetType : uint32_t
@@ -157,6 +158,7 @@ namespace Sapphire
       TimepointData( TimepointDataType::SetPos ),
       m_actorRef( actorRef ),
       m_posType( type ),
+      m_targetType( targetType ),
       m_moveType( moveType ),
       m_selectorName( selectorName), m_selectorIndex( selectorIndex ),
       m_x( x ), m_y( y ), m_z( z ), m_rot( rot )
@@ -314,6 +316,19 @@ namespace Sapphire
       m_selector( selector ),
       m_actorRef( actorRef ),
       m_excludeSelector( excludeSelector )
+    {
+    }
+  };
+
+  struct TimepointDataInterruptAction : public TimepointData
+  {
+    std::string m_actorRef;
+    uint32_t m_actionId;
+
+    TimepointDataInterruptAction( const std::string& actorRef, uint32_t actionId ) :
+      TimepointData( TimepointDataType::InterruptAction ),
+      m_actorRef( actorRef ),
+      m_actionId( actionId )
     {
     }
   };

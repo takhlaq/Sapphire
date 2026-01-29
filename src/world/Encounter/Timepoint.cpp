@@ -60,7 +60,8 @@ namespace Sapphire
       { "setBGM",              TimepointDataType::SetBgm },
 
       { "setCondition",        TimepointDataType::SetCondition },
-      { "snapshot",            TimepointDataType::Snapshot }
+      { "snapshot",            TimepointDataType::Snapshot },
+      { "interruptAction",     TimepointDataType::InterruptAction }
     };
 
     const static std::unordered_map< std::string, DirectorOpId > directorOpMap =
@@ -338,7 +339,6 @@ namespace Sapphire
         m_pData = std::make_shared< TimepointDataCondition >( conditionId, enabled );
       }
       break;
-
       case TimepointDataType::Snapshot:
       {
         auto& dataJ = json.at( "data" );
@@ -348,6 +348,15 @@ namespace Sapphire
         // todo: use exclude selector when added to ui
 
         m_pData = std::make_shared< TimepointDataSnapshot >( selectorName, actorRef, excludeSelector );
+      }
+      break;
+      case TimepointDataType::InterruptAction:
+      {
+        auto& dataJ = json.at( "data" );
+        auto actorRef = dataJ.at( "sourceActor" ).get< std::string >();
+        auto actionId = dataJ.at( "actionId" ).get< uint32_t >();
+
+        m_pData = std::make_shared< TimepointDataInterruptAction >( actorRef, actionId );
       }
       break;
       default:
@@ -810,6 +819,22 @@ namespace Sapphire
         {
           const auto& exclude = pack.getSnapshotTargetIds( pSnapshotData->m_excludeSelector );
           pack.createSnapshot( pSnapshotData->m_selector, *pBNpc, exclude );
+        }
+      }
+      break;
+      case TimepointDataType::InterruptAction:
+      {
+        auto pInterruptData = std::dynamic_pointer_cast< TimepointDataInterruptAction, TimepointData >( m_pData );
+        auto pBNpc = pack.getBNpcByRef( pInterruptData->m_actorRef, pEncounter );
+
+        if( pBNpc )
+        {
+          auto pAction = pBNpc->getCurrentAction();
+          if( pAction && pAction->getId() == pInterruptData->m_actionId )
+          {
+            pAction->setInterrupted( Common::ActionInterruptType::RegularInterrupt );
+            pAction->interrupt();
+          }
         }
       }
       break;
