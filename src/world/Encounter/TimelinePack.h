@@ -61,7 +61,7 @@ namespace Sapphire
 
     void addSelector( const std::string& name, const Selector& selector );
 
-    void createSnapshot( const std::string& selectorName, Entity::CharaPtr pSrc,
+    void createSnapshot( const std::string& selectorName, Entity::Chara& src,
                          const std::vector< uint32_t >& exclude );
 
     const World::AI::Snapshot::Results& getSnapshotResults( const std::string& selectorName );

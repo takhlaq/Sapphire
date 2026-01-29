@@ -517,10 +517,10 @@ namespace Sapphire
     m_selectors.emplace( std::make_pair( name, selector ) );
   }
 
-  void TimelinePack::createSnapshot( const std::string& selectorName, Entity::CharaPtr pSrc, const std::vector< uint32_t >& exclude )
+  void TimelinePack::createSnapshot( const std::string& selectorName, Entity::Chara& src, const std::vector< uint32_t >& exclude )
   {
     if( auto it = m_selectors.find( selectorName ); it != m_selectors.end() )
-      it->second.createSnapshot( pSrc, exclude );
+      it->second.createSnapshot( src, exclude );
   }
 
   const World::AI::Snapshot::Results& TimelinePack::getSnapshotResults( const std::string& selectorName )

@@ -116,7 +116,13 @@ namespace Sapphire
   {
     auto pTeri = pEncounter->getTeriPtr();
     auto pBNpc = pTeri->getActiveBNpcByLayoutId( m_layoutId );
-    return pBNpc && pBNpc->getCurrentAction() && pBNpc->getCurrentAction()->getId() == m_actionId;
+
+    if( pBNpc )
+    {
+      auto pAction = pBNpc->getCurrentAction();
+      return pAction && pAction->getId() == m_actionId && !pAction->isInterrupted();
+    }
+    return false;
   }
 
   bool ConditionScheduleActive::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const

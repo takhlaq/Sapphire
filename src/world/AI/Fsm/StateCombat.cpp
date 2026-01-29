@@ -22,6 +22,9 @@ void AI::Fsm::StateCombat::onUpdate( Entity::BNpc& bnpc, uint64_t tickCount )
   auto pNaviProvider = pZone->getNaviProvider();
   bool hasQueuedAction = bnpc.checkAction();
 
+  if( hasQueuedAction )
+    return;
+
   auto pHatedActor = bnpc.hateListGetHighest();
   if( !pHatedActor )
     return;

@@ -96,7 +96,7 @@ bool Action::Action::init()
 
     m_actionData = actionData;
   }
-  auto teriMgr = Common::Service< Manager::TerritoryMgr >::ref();
+  auto& teriMgr = Common::Service< Manager::TerritoryMgr >::ref();
   auto zone = teriMgr.getTerritoryByGuId( m_pSource->getTerritoryId() );
   m_resultId = zone->getNextActionResultId();
 
@@ -1040,7 +1040,7 @@ bool Action::Action::preFilterActor( Entity::GameObject& actor ) const
     return true;
 
   auto kind = actor.getObjKind();
-  auto chara = actor.getAsChara();
+  auto pChara = actor.getAsChara();
 
   // todo: are there any server side eobjs that players can hit?
   if( kind != ObjKind::BattleNpc && kind != ObjKind::Player )
@@ -1056,6 +1056,7 @@ bool Action::Action::preFilterActor( Entity::GameObject& actor ) const
     }
     case Common::TargetFilter::Players:
     {
+      // todo: handle pets (use TargetHelper::OwnBattalionFilter maybe?)
       actorApplicable = kind == ObjKind::Player;
       break;
     }
@@ -1093,10 +1094,10 @@ bool Action::Action::preFilterActor( Entity::GameObject& actor ) const
     }
   }
   
-  if( chara->isAlive() && ( m_lutEntry.curePotency > 0 || m_canTargetFriendly ) && m_pSource->isFriendly( *chara ) )
+  if( pChara->isAlive() && ( m_lutEntry.curePotency > 0 || m_canTargetFriendly ) && m_pSource->isFriendly( *pChara ) )
     return actorApplicable;
 
-  if( chara->isAlive() && ( m_lutEntry.potency > 0 || m_canTargetHostile ) && m_pSource->isHostile( *chara ) )
+  if( pChara->isAlive() && ( m_lutEntry.potency > 0 || m_canTargetHostile ) && m_pSource->isHostile( *pChara ) )
     return actorApplicable;
 
   return false;

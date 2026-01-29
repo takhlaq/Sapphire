@@ -9,7 +9,7 @@
     "curePotency": 0,
     "restorePercentage": 0,
     "nextCombo": [],
-    "targetFilter": 0,
+    "targetFilter": 1,
     "aggroModifier": 1.0,
     "statuses": {
       "caster": [],
@@ -18,6 +18,23 @@
   },
   "454": {
     "name": "Vulcan Burst",
+    "potency": 100,
+    "comboPotency": 0,
+    "flankPotency": 0,
+    "frontPotency": 0,
+    "rearPotency": 0,
+    "curePotency": 0,
+    "restorePercentage": 0,
+    "nextCombo": [],
+    "targetFilter": 1,
+    "aggroModifier": 1.0,
+    "statuses": {
+      "caster": [],
+      "target": []
+    }
+  },
+  "455": {
+    "name": "Eruption",
     "potency": 100,
     "comboPotency": 0,
     "flankPotency": 0,
@@ -42,7 +59,7 @@
     "rearPotency": 0,
     "curePotency": 0,
     "restorePercentage": 0,
-    "targetFilter": 0,
+    "targetFilter": 1,
     "nextCombo": [],
     "aggroModifier": 1.0,
     "statuses": {
@@ -59,13 +76,13 @@
     "rearPotency": 0,
     "curePotency": 0,
     "restorePercentage": 0,
-    "targetFilter": 0,
+    "targetFilter": 1,
     "nextCombo": [],
     "aggroModifier": 1.0,
     "statuses": {
       "caster": [
         {
-          "id": 394,
+          "id": 325,
           "duration": 8000,
           "modifiers": [
             {
@@ -87,7 +104,7 @@
     "rearPotency": 0,
     "curePotency": 0,
     "restorePercentage": 0,
-    "targetFilter": 0,
+    "targetFilter": 1,
     "nextCombo": [],
     "aggroModifier": 1.0,
     "statuses": {
@@ -104,7 +121,7 @@
     "rearPotency": 0,
     "curePotency": 0,
     "restorePercentage": 0,
-    "targetFilter": 0,
+    "targetFilter": 1,
     "nextCombo": [],
     "aggroModifier": 1.0,
     "statuses": {

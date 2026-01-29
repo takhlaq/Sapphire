@@ -134,7 +134,7 @@ namespace Sapphire
         auto selectorIndex = dataJ.at( "selectorIndex" ).get< uint32_t >();
 
         m_pData = std::make_shared< TimepointDataAction >( sourceRef, actionId, targetType,
-                                                           selectorRef, selectorIndex - 1 );
+                                                           selectorRef, selectorIndex );
       }
       break;
       case TimepointDataType::SetPos:
@@ -390,6 +390,7 @@ namespace Sapphire
       {
         auto pActionData = std::dynamic_pointer_cast< TimepointDataAction, TimepointData >( m_pData );
         auto pBNpc = pack.getBNpcByRef( pActionData->m_sourceRef, pEncounter );
+        Common::FFXIVARR_POSITION3 pos = pBNpc->getPos();
         // todo: filter the correct target
         // todo: tie to mechanic script?
         // todo: mechanic should probably just be an Action::onTick, with instance/director passed to it
@@ -409,9 +410,17 @@ namespace Sapphire
               break;
             case ActionTargetType::Selector:
             {
-              const auto& results = pack.getSnapshotTargetIds( pActionData->m_selectorRef );
+              const auto& results = pack.getSnapshotResults( pActionData->m_selectorRef );
+
+              auto pTeri = pEncounter->getTeriPtr();
+              const auto& players = pTeri->getPlayers();
+
               if( pActionData->m_selectorIndex < results.size() )
-                targetId = results[ pActionData->m_selectorIndex ];
+              {
+                const auto& res = results[ pActionData->m_selectorIndex ];
+                targetId = res.m_entityId;
+                pos = res.m_pos;
+              }
             }
             break;
             default:
@@ -423,8 +432,10 @@ namespace Sapphire
           // todo: this is probably wrong
           if( !pAction || pAction->isInterrupted() )
           {
-            actionMgr.handleTargetedAction( *pBNpc, pActionData->m_actionId, targetId, pTeri->getNextActionResultId() );
-            //actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pBNpc->getPos(), pTeri->getNextActionResultId() );
+            if( pActionData->m_targetType == ActionTargetType::Selector )
+              actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pos, pTeri->getNextActionResultId() );
+            else
+              actionMgr.handleTargetedAction( *pBNpc, pActionData->m_actionId, targetId, pTeri->getNextActionResultId() );
           }
           else
           {
@@ -476,8 +487,18 @@ namespace Sapphire
           {
             case SetPosType::Absolute:
             {
-              pBNpc->setRot( pSetPosData->m_rot );
-              pBNpc->setPos( pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z, true );
+              // todo: this doesn't seem to work?
+              // dont use absolute pos for selector, just use the selector pos
+              if( pSetPosData->m_targetType == SetPosTargetType::Selector )
+              {
+                pBNpc->setRot( rot );
+                pBNpc->setPos( pos, true );
+              }
+              else
+              {
+                pBNpc->setRot( pSetPosData->m_rot );
+                pBNpc->setPos( pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z, true );
+              }
             }
             break;
             case SetPosType::Relative:
@@ -722,7 +743,6 @@ namespace Sapphire
           pBNpc->init();
 
           pTeri->pushActor( pBNpc );
-
         }
       }
       break;
@@ -789,7 +809,7 @@ namespace Sapphire
         if( pBNpc )
         {
           const auto& exclude = pack.getSnapshotTargetIds( pSnapshotData->m_excludeSelector );
-          pack.createSnapshot( pSnapshotData->m_selector, pBNpc, exclude );
+          pack.createSnapshot( pSnapshotData->m_selector, *pBNpc, exclude );
         }
       }
       break;

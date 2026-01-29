@@ -80,7 +80,7 @@ namespace Sapphire
       this->m_id = json.at( "id" ).get< uint32_t >();
     }
 
-    const std::string& getScheduleName()
+    const std::string& getScheduleName() const
     {
       return m_schedule.m_name;
     }

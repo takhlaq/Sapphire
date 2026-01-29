@@ -18,6 +18,8 @@
 
 #include "Network/Util/PacketUtil.h"
 
+#include "AI/TargetHelper.h"
+
 #include "Action/Action.h"
 #include "WorldServer.h"
 #include "Session.h"
@@ -976,14 +978,25 @@ bool Chara::isFacingTarget( const Chara& other, float threshold )
   return dot >= threshold;
 }
 
-bool Sapphire::Entity::Chara::isHostile( const Chara& chara )
+bool Sapphire::Entity::Chara::isHostile( Chara& chara )
 {
-  return m_objKind != chara.getObjKind();
+  // todo: use battalion
+  static auto pBattalionFilter = std::make_shared< AI::OwnBattalionFilter >();
+
+  auto pTarget = chara.getAsChara();
+  auto pSrc = getAsChara();
+
+  return !pBattalionFilter->isApplicable( pSrc, pTarget );
 }
 
-bool Sapphire::Entity::Chara::isFriendly( const Chara& chara )
+bool Sapphire::Entity::Chara::isFriendly( Chara& chara )
 {
-  return m_objKind == chara.getObjKind();
+  static auto pBattalionFilter = std::make_shared< AI::OwnBattalionFilter >();
+
+  auto pTarget = chara.getAsChara();
+  auto pSrc = getAsChara();
+
+  return pBattalionFilter->isApplicable( pSrc, pTarget );
 }
 
 void Chara::onTick()
