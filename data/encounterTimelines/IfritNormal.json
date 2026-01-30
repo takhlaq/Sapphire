@@ -329,15 +329,6 @@
             },
             {
               "data": {
-                "flags": 16,
-                "targetActor": ""
-              },
-              "description": "",
-              "startTime": 7000,
-              "type": "bNpcFlags"
-            },
-            {
-              "data": {
                 "actionId": 458,
                 "selectorIndex": 0,
                 "selectorName": "<unset>",
@@ -359,6 +350,15 @@
               "description": "enable final phase",
               "startTime": 12000,
               "type": "setCondition"
+            },
+            {
+              "data": {
+                "flags": 16,
+                "targetActor": ""
+              },
+              "description": "",
+              "startTime": 15000,
+              "type": "bNpcFlags"
             }
           ]
         },

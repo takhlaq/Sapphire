@@ -520,22 +520,29 @@ namespace Sapphire
               }
               else
               {
-                pBNpc->setRot( pSetPosData->m_rot );
-                pBNpc->setPos( pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z, true );
+                pos = { pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z };
+                rot = pSetPosData->m_rot;
               }
             }
             break;
             case SetPosType::Relative:
             {
               auto offsetPos = Common::Util::getOffsettedPosition( pos, rot, pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z );
-              pBNpc->setRot( rot );
-              pBNpc->setPos( offsetPos, true );
+              pos = offsetPos;
             }
             break;
             default:
               break;
           }
 
+          // todo: handling agent should really be somewhere else
+          if( pBNpc->getAgentId() != -1 )
+          {
+            auto pNavi = pTeri->getNaviProvider();
+            pBNpc->setAgentId( pNavi->updateAgentPosition( pBNpc->getAgentId(), pos, pBNpc->getRadius(), pNavi->getAgentSpeed( pBNpc->getAgentId() ) ) );
+          }
+          pBNpc->setRot( rot );
+          pBNpc->setPos( pos, true );
         }
       }
       break;

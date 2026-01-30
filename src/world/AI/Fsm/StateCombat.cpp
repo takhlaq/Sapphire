@@ -64,7 +64,7 @@ void AI::Fsm::StateCombat::onUpdate( Entity::BNpc& bnpc, uint64_t tickCount )
 
   if( bnpc.pathingActive() && !hasQueuedAction &&
       !bnpc.hasFlag( Entity::Immobile ) &&
-      distance > ( bnpc.getNaviTargetReachedDistance() + pHatedActor->getRadius() ) )
+      distance > ( bnpc.getNaviTargetReachedDistance() + pHatedActor->getRadius() + 1.0f ) )
   {
 
     if( pNaviProvider )
@@ -74,7 +74,7 @@ void AI::Fsm::StateCombat::onUpdate( Entity::BNpc& bnpc, uint64_t tickCount )
   }
   else
   {
-    if( !bnpc.hasFlag( Entity::TurningDisabled ) )
+    if( !bnpc.hasFlag( Entity::TurningDisabled ) && !bnpc.isFacingTarget( *pHatedActor, 1.0f ) )
     {
       bnpc.face( pHatedActor->getPos() );
       bnpc.sendPositionUpdate( tickCount );
@@ -84,13 +84,11 @@ void AI::Fsm::StateCombat::onUpdate( Entity::BNpc& bnpc, uint64_t tickCount )
   if( bnpc.getAgentId() != -1 )
   {
     auto pos = pNaviProvider->getAgentPos( bnpc.getAgentId() );
-    if( pos.x != bnpc.getPos().x || pos.y != bnpc.getPos().y || pos.z != bnpc.getPos().z )
+    if( ( pos.x != bnpc.getPos().x || pos.y != bnpc.getPos().y || pos.z != bnpc.getPos().z ) && Common::Util::distance( bnpc.getPos(), pos ) > bnpc.getNaviTargetReachedDistance() )
       bnpc.setPos( pos );
   }
 
-
-
-  if( !hasQueuedAction && distance < ( bnpc.getNaviTargetReachedDistance() + pHatedActor->getRadius() ) )
+  if( !hasQueuedAction && distance < ( bnpc.getNaviTargetReachedDistance() + pHatedActor->getRadius() + 1.0f ) )
   {
     bnpc.processGambits( tickCount );
 

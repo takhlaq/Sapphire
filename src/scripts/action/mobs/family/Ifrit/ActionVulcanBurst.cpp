@@ -43,8 +43,9 @@ public:
       auto dmg = action.calcDamage( Potency );
       pActionBuilder->damage( pSource, pTarget, dmg.first, dmg.second );
 
-    if( dmg.first > 0 )
-      pTarget->knockback( pSource->getPos(), 20.f );
+      // todo:
+      //if( dmg.first > 0 )
+      //  pTarget->knockback( pSource->getPos(), 20.f );
     }
   }
 };
