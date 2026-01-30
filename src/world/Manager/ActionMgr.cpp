@@ -29,11 +29,12 @@ bool ActionMgr::cacheActionShapeLut()
   return Action::ActionShapeLutData::cacheShapes();
 }
 
-void ActionMgr::handlePlacedAction( Entity::Chara& chara, uint32_t actionId, Common::FFXIVARR_POSITION3 pos, uint16_t requestId )
+void ActionMgr::handlePlacedAction( Entity::Chara& chara, uint32_t actionId, Common::FFXIVARR_POSITION3 pos, uint16_t requestId, uint64_t targetId )
 {
   auto action = Action::make_Action( chara.getAsChara(), actionId, requestId );
 
   action->setPos( pos );
+  action->setTargetId( targetId );
 
   if( !action->init() )
     return;
@@ -53,7 +54,7 @@ void ActionMgr::handlePlacedAction( Entity::Chara& chara, uint32_t actionId, Com
   bootstrapAction( chara, action, actionData );
 }
 
-void ActionMgr::handleItemManipulationAction( Entity::Player& player, uint32_t actionId,  uint16_t sequence )
+void ActionMgr::handleItemManipulationAction( Entity::Player& player, uint32_t actionId, uint16_t sequence )
 {
   auto action = Action::make_ItemManipulationAction( player.getAsPlayer(), actionId, sequence, nullptr, 2500 ); // todo: maybe the delay can be retrieved from data
 

@@ -48,7 +48,8 @@ namespace Sapphire
     None,
     Self,
     Target,
-    Selector
+    SelectorPos,
+    SelectorTarget
   };
 
   enum class MoveType : uint32_t
@@ -69,7 +70,8 @@ namespace Sapphire
     None,
     Self,
     Target,
-    Selector
+    SelectorPos,
+    SelectorTarget
   };
 
   enum class DirectorOpId

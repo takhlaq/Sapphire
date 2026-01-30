@@ -235,6 +235,7 @@ namespace Sapphire
                                       const std::unordered_map< std::string, TimelineActor >& actors )
   {
     ScheduleCondition::from_json( json, phase, condition, actors );
+
     auto& paramData = json.at( "paramData" );
     auto actorRef = paramData.at( "sourceActor" ).get< std::string >();
 
@@ -291,7 +292,7 @@ namespace Sapphire
     if( auto it = actors.find( actorRef ); it != actors.end() )
       m_layoutId = it->second.m_layoutId;
     else
-      throw std::runtime_error( fmt::format( std::string( "ConditionCombatState::from_json unable to find actor by name: %s" ), actorRef ) );
+      throw std::runtime_error( fmt::format( std::string( "ConditionInterruptedAction::from_json unable to find actor by name: %s" ), actorRef ) );
 
     m_actionId = actionId;
   }

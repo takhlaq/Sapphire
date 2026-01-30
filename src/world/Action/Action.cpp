@@ -289,7 +289,7 @@ bool Action::Action::update()
     }
 
     player->setLastActionTick( tickCount );
-    uint64_t delayMs = 100 - lastTickMs;
+    uint64_t delayMs = 100ull - lastTickMs;
     castTime = ( m_castTimeMs + delayMs );
     m_castTimeRestMs = static_cast< uint64_t >( m_castTimeMs ) - static_cast< uint64_t >( std::difftime( tickCount, startTime ) );
   }

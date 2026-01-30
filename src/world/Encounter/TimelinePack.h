@@ -92,7 +92,6 @@ namespace Sapphire
     void setEncounter( std::shared_ptr< Encounter > pEncounter );
 
     static TimeLinePackPtr createTimelinePack( const std::string& name );
-    static TimelinePack getEncounterPack( const std::string& name, bool reload = false );
   };
 
 

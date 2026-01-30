@@ -568,7 +568,7 @@
                 "selectorIndex": 0,
                 "selectorName": "Eruption",
                 "targetActor": "<unknown>",
-                "targetType": "selector"
+                "targetType": "selectorPos"
               },
               "description": "setPos to selector",
               "startTime": 0,
@@ -582,7 +582,7 @@
                 "snapshot": false,
                 "snapshotTime": 0,
                 "sourceActor": "Ifrit Control <subactor 1>",
-                "targetType": "selector"
+                "targetType": "selectorPos"
               },
               "description": "",
               "startTime": 100,
@@ -1395,5 +1395,5 @@
       "name": "Eruption"
     }
   ],
-  "version": 11
+  "version": 12
 }

@@ -88,10 +88,11 @@ namespace Sapphire
 
     const static std::unordered_map< std::string, ActionTargetType > actionTypeMap =
     {
-      { "none",     ActionTargetType::None },
-      { "self",     ActionTargetType::Self },
-      { "target",   ActionTargetType::Target },
-      { "selector", ActionTargetType::Selector }
+      { "none",           ActionTargetType::None },
+      { "self",           ActionTargetType::Self },
+      { "target",         ActionTargetType::Target },
+      { "selectorPos",    ActionTargetType::SelectorPos },
+      { "selectorTarget", ActionTargetType::SelectorTarget },
     };
 
     const static std::unordered_map< std::string, SetPosType > setPosTypeMap =
@@ -102,10 +103,11 @@ namespace Sapphire
 
     const static std::unordered_map< std::string, SetPosTargetType > setPosTargetTypeMap =
     {
-      { "none",     SetPosTargetType::None },
-      { "self",     SetPosTargetType::Self },
-      { "target",   SetPosTargetType::Target },
-      { "selector", SetPosTargetType::Selector }
+      { "none",           SetPosTargetType::None },
+      { "self",           SetPosTargetType::Self },
+      { "target",         SetPosTargetType::Target },
+      { "selectorPos",    SetPosTargetType::SelectorPos },
+      { "selectorTarget", SetPosTargetType::SelectorTarget }
     };
 
     TimepointDataType tpType{ 0 };
@@ -417,12 +419,10 @@ namespace Sapphire
             case ActionTargetType::Self:
               targetId = pBNpc->getId();
               break;
-            case ActionTargetType::Selector:
+            case ActionTargetType::SelectorPos:
+            case ActionTargetType::SelectorTarget:
             {
               const auto& results = pack.getSnapshotResults( pActionData->m_selectorRef );
-
-              auto pTeri = pEncounter->getTeriPtr();
-              const auto& players = pTeri->getPlayers();
 
               if( pActionData->m_selectorIndex < results.size() )
               {
@@ -439,16 +439,12 @@ namespace Sapphire
           auto pAction = pBNpc->getCurrentAction();
 
           // todo: this is probably wrong
-          if( !pAction || pAction->isInterrupted() )
+          //if( !pAction || pAction->isInterrupted() )
           {
-            if( pActionData->m_targetType == ActionTargetType::Selector )
-              actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pos, pTeri->getNextActionResultId() );
+            if( pActionData->m_targetType == ActionTargetType::SelectorPos )
+              actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pos, pTeri->getNextActionResultId(), targetId );
             else
               actionMgr.handleTargetedAction( *pBNpc, pActionData->m_actionId, targetId, pTeri->getNextActionResultId() );
-          }
-          else
-          {
-            return false;
           }
         }
       }
@@ -478,13 +474,33 @@ namespace Sapphire
               }
             }
             break;
-            case SetPosTargetType::Selector:
+            case SetPosTargetType::SelectorPos:
             {
               const auto& results = pack.getSnapshotResults( pSetPosData->m_selectorName );
               if( pSetPosData->m_selectorIndex < results.size() )
               {
                 pos = results[ pSetPosData->m_selectorIndex ].m_pos;
                 rot = results[ pSetPosData->m_selectorIndex ].m_rot;
+              }
+            }
+            break;
+            // todo: idk what i was thinking here but should this just be the snapshotted position as above rather than live pos?
+            case SetPosTargetType::SelectorTarget:
+            {
+              const auto& results = pack.getSnapshotResults( pSetPosData->m_selectorName );
+              if( pSetPosData->m_selectorIndex < results.size() )
+              {
+                // find the target by id and copy their pos
+                auto targetId = results[ pSetPosData->m_selectorIndex ].m_entityId;
+                for( const auto& pActor : pBNpc->getInRangeActors() )
+                {
+                  if( pActor->getId() == targetId )
+                  {
+                    pos = pActor->getPos();
+                    rot = pActor->getRot();
+                    break;
+                  }
+                }
               }
             }
             break;
@@ -496,9 +512,8 @@ namespace Sapphire
           {
             case SetPosType::Absolute:
             {
-              // todo: this doesn't seem to work?
               // dont use absolute pos for selector, just use the selector pos
-              if( pSetPosData->m_targetType == SetPosTargetType::Selector )
+              if( pSetPosData->m_targetType == SetPosTargetType::SelectorPos || pSetPosData->m_targetType == SetPosTargetType::SelectorTarget )
               {
                 pBNpc->setRot( rot );
                 pBNpc->setPos( pos, true );
@@ -514,7 +529,7 @@ namespace Sapphire
             {
               auto offsetPos = Common::Util::getOffsettedPosition( pos, rot, pSetPosData->m_x, pSetPosData->m_y, pSetPosData->m_z );
               pBNpc->setRot( rot );
-              pBNpc->setPos( offsetPos );
+              pBNpc->setPos( offsetPos, true );
             }
             break;
             default:
