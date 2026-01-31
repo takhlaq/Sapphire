@@ -405,7 +405,7 @@ bool BNpc::moveTo( const FFXIVARR_POSITION3& pos )
   auto pos1 = pNaviProvider->getAgentPos( getAgentId() );
   auto distance = Common::Util::distance( pos1, pos );
 
-  if( distance < getNaviTargetReachedDistance() )
+  if( distance <= getNaviTargetReachedDistance() )
   {
     // Reached destination
     face( pos );
@@ -427,38 +427,7 @@ bool BNpc::moveTo( const FFXIVARR_POSITION3& pos )
 
 bool BNpc::moveTo( const Chara& targetChara )
 {
-  auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-  auto pZone = teriMgr.getTerritoryByGuId( getTerritoryId() );
-
-  auto pNaviProvider = pZone->getNaviProvider();
-
-  if( !pNaviProvider )
-  {
-    Logger::error( "No NaviProvider for zone#{0} - {1}", pZone->getGuId(), pZone->getInternalName() );
-    return false;
-  }
-
-  auto pos1 = pNaviProvider->getAgentPos( getAgentId() );
-  auto distance = Common::Util::distance( pos1, targetChara.getPos() );
-
-  if( distance <= ( getNaviTargetReachedDistance() + targetChara.getRadius() ) )
-  {
-    // Reached destination
-    face( targetChara.getPos() );
-    setPos( pos1 );
-    pNaviProvider->resetMoveTarget( getAgentId() );
-    auto newAgentId = pNaviProvider->updateAgentPosition( getAgentId(), pos1, getRadius(), getCurrentSpeed() );
-    setAgentId( newAgentId );
-    return true;
-  }
-
-  pZone->updateActorPosition( *this );
-  if( distance > 2.0f )
-    face( { ( pos1.x - getPos().x ) + pos1.x, 1.0f, ( pos1.z - getPos().z ) + pos1.z } );
-  else
-    face( targetChara.getPos() );
-  setPos( pos1 );
-  return false;
+  return moveTo( targetChara.getPos() );
 }
 
 float mapSpeedToRange( float speed, float minSpeed = 0.0f, float maxSpeed = 18.0f )

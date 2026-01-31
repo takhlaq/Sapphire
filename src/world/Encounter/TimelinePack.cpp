@@ -20,6 +20,9 @@
 
 #include <Manager/ActionMgr.h>
 #include <Manager/PlayerMgr.h>
+
+#include <Random/RNGMgr.h>
+
 #include <Service.h>
 
 #include <Territory/QuestBattle.h>
@@ -121,7 +124,8 @@ namespace Sapphire
 
       { "getAction",                ConditionType::GetAction },
       { "scheduleActive",           ConditionType::ScheduleActive },
-      { "interruptedAction",        ConditionType::InterruptedAction }
+      { "interruptedAction",        ConditionType::InterruptedAction },
+      { "rngEquals",                ConditionType::RNGEquals }
     };
 
     auto pack = std::make_shared< TimelinePack >();
@@ -285,6 +289,12 @@ namespace Sapphire
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
             break;
+            case ConditionType::RNGEquals:
+            {
+              pCondition = std::make_shared< ConditionRNGEquals >();
+              pCondition->from_json( pcV, schedule, condition, actorNameMap );
+            }
+            break;
             default:
               break;
           }
@@ -412,5 +422,16 @@ namespace Sapphire
   void TimelinePack::setEncounter( std::shared_ptr< Encounter > pEncounter )
   {
     m_pEncounter = pEncounter;
+  }
+
+  uint32_t TimelinePack::getRNGVal() const
+  {
+    return m_rngVal;
+  }
+
+  void TimelinePack::rollRNG( uint32_t min, uint32_t max )
+  {
+    auto& rngMgr = Common::Service< Common::Random::RNGMgr >::ref();
+    m_rngVal = rngMgr.getRandGenerator( min, max ).next();
   }
 }// namespace Sapphire::Encounter

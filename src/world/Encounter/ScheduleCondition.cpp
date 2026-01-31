@@ -142,6 +142,11 @@ namespace Sapphire
     return false;
   }
 
+  bool ConditionRNGEquals::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
+  {
+    return pack.getRNGVal() == m_val;
+  }
+
   void ConditionHp::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition,
                                const std::unordered_map< std::string, TimelineActor >& actors )
   {
@@ -297,6 +302,16 @@ namespace Sapphire
     m_actionId = actionId;
   }
 
+  void ConditionRNGEquals::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors )
+  {
+    ScheduleCondition::from_json( json, phase, condition, actors );
+
+    auto& paramData = json.at( "paramData" );
+    auto val = paramData.at( "val" ).get< uint32_t >();
+
+    m_val = val;
+  }
+
   // todo: i wrote this very sleep deprived, ensure it is actually sane
 
   void Schedule::execute( ConditionState& state, TimelineActor& self, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
@@ -341,4 +356,5 @@ namespace Sapphire
   {
     return state.m_scheduleInfo.m_lastTimepointIndex == m_timepoints.size();
   }
-} // namespace Sapphire
+
+}// namespace Sapphire

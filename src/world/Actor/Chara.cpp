@@ -419,6 +419,9 @@ void Chara::takeDamage( uint32_t damage, bool broadcastUpdate )
   if( m_status == ActorStatus::Dead )
     return;
 
+  if( m_invincibilityType == InvincibilityIgnoreDamage )
+    damage = 0;
+
   if( damage >= m_hp )
   {
     switch( m_invincibilityType )
@@ -437,14 +440,8 @@ void Chara::takeDamage( uint32_t damage, bool broadcastUpdate )
         break;
     }
   }
-  else if( m_invincibilityType != InvincibilityIgnoreDamage )
-  {
-    m_hp -= damage;
-  }
   else
-  {
-    damage = 0;
-  }
+    m_hp -= damage;
 
   if( broadcastUpdate )
   {
@@ -809,6 +806,17 @@ bool Chara::hasStatusEffect( uint32_t id )
   return false;
 }
 
+bool Chara::hasStatusEffectByFlag( Common::StatusEffectFlag flag )
+{
+  auto uflag = static_cast< uint32_t >( flag );
+  for( const auto& [ key, pEffect ] : m_statusEffectMap )
+  {
+    if( ( pEffect->getFlag() & uflag ) != 0 )
+      return true;
+  }
+  return false;
+}
+
 int64_t Chara::getLastUpdateTime() const
 {
   return m_lastUpdate;
@@ -990,7 +998,6 @@ bool Chara::isFacingTarget( const Chara& other, float threshold )
 
 bool Sapphire::Entity::Chara::isHostile( Chara& chara )
 {
-  // todo: use battalion
   static auto pBattalionFilter = std::make_shared< AI::OwnBattalionFilter >();
 
   auto pTarget = chara.getAsChara();

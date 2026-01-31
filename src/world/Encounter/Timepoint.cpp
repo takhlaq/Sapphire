@@ -61,7 +61,8 @@ namespace Sapphire
 
       { "setCondition",        TimepointDataType::SetCondition },
       { "snapshot",            TimepointDataType::Snapshot },
-      { "interruptAction",     TimepointDataType::InterruptAction }
+      { "interruptAction",     TimepointDataType::InterruptAction },
+      { "rollRNG",             TimepointDataType::RollRNG }
     };
 
     const static std::unordered_map< std::string, DirectorOpId > directorOpMap =
@@ -359,6 +360,15 @@ namespace Sapphire
         auto actionId = dataJ.at( "actionId" ).get< uint32_t >();
 
         m_pData = std::make_shared< TimepointDataInterruptAction >( actorRef, actionId );
+      }
+      break;
+      case TimepointDataType::RollRNG:
+      {
+        auto& dataJ = json.at( "data" );
+        auto min = dataJ.at( "min" ).get< uint32_t >();
+        auto max = dataJ.at( "max" ).get< uint32_t >();
+
+        m_pData = std::make_shared< TimepointDataRollRNG >( min, max );
       }
       break;
       default:
@@ -859,6 +869,15 @@ namespace Sapphire
             pAction->interrupt();
           }
         }
+      }
+      break;
+      case TimepointDataType::RollRNG:
+      {
+        // todo: maybe a way to store this to director var?
+        //       or just have a script grab pEncounter->getTimelinePack()->getRNGVal();
+        auto pRNGData = std::dynamic_pointer_cast< TimepointDataRollRNG, TimepointData >( m_pData );
+
+        pack.rollRNG( pRNGData->m_min, pRNGData->m_max );
       }
       break;
       default:

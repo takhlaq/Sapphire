@@ -40,7 +40,8 @@ namespace Sapphire
     SetCondition,
 
     Snapshot,
-    InterruptAction
+    InterruptAction,
+    RollRNG // todo: make this save to director var idx
   };
 
   enum class ActionTargetType : uint32_t
@@ -335,6 +336,19 @@ namespace Sapphire
     }
   };
 
+  struct TimepointDataRollRNG : public TimepointData
+  {
+    uint32_t m_min;
+    uint32_t m_max;
+
+    TimepointDataRollRNG( uint32_t min, uint32_t max ) :
+      TimepointData( TimepointDataType::RollRNG ),
+      m_min( min ),
+      m_max( max )
+    {
+    }
+  };
+
   // todo: refactor all this to allow solo actor to use
   class Timepoint : public std::enable_shared_from_this< Timepoint >
   {
@@ -354,4 +368,4 @@ namespace Sapphire
     bool update( TimelineActor& self, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const;
     bool execute( TimelineActor& self, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const;
   };
-}// namespace Sapphire::Encounter
+}// namespace Sapphire
