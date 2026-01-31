@@ -982,15 +982,14 @@ void Action::Action::addDefaultActorFilters()
 {
   switch( m_castType )
   {
-    // todo: figure these out and remove 5/RectangularAOE to own handler
-    case( Common::CastType ) 5:
     case Common::CastType::SingleTarget:
     {
       auto filter = std::make_shared< World::Util::ActorFilterSingleTarget >( static_cast< uint32_t >( m_targetId ) );
       addActorFilter( filter );
       break;
     }
-
+    // todo: what is this CastType::Unknown (5)? seems to be another circular aoe?
+    case Common::CastType::Unknown:
     case Common::CastType::Circle:
     {
       auto filter = std::make_shared< World::Util::ActorFilterInRange >( m_pos, m_effectRange );

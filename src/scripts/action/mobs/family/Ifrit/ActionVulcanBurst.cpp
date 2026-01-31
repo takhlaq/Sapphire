@@ -44,8 +44,8 @@ public:
       pActionBuilder->damage( pSource, pTarget, dmg.first, dmg.second );
 
       // todo:
-      //if( dmg.first > 0 )
-      //  pTarget->knockback( pSource->getPos(), 20.f );
+      if( dmg.first > 0 )
+        pTarget->knockback( pSource->getPos(), 20.f );
     }
   }
 };

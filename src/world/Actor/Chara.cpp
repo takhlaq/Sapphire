@@ -437,8 +437,14 @@ void Chara::takeDamage( uint32_t damage, bool broadcastUpdate )
         break;
     }
   }
-  else
+  else if( m_invincibilityType != InvincibilityIgnoreDamage )
+  {
     m_hp -= damage;
+  }
+  else
+  {
+    damage = 0;
+  }
 
   if( broadcastUpdate )
   {
@@ -548,6 +554,10 @@ void Chara::addStatusEffect( StatusEffect::StatusEffectPtr pEffect )
   pEffect->setSlot( nextSlot );
   m_statusEffectMap[ nextSlot ] = pEffect;
   pEffect->applyStatus();
+
+  Network::Util::Packet::sendActorControl( getInRangePlayerIds( isPlayer() ), getId(), StatusEffectGain,
+                                           pEffect->getId() );
+  Network::Util::Packet::sendHudParam( *this );
 }
 
 /*! \param StatusEffectPtr to be applied to the actor */
@@ -596,13 +606,13 @@ void Chara::replaceSingleStatusEffect( uint32_t slotId, StatusEffect::StatusEffe
   pStatus->applyStatus();
 }
 
-void Chara::replaceSingleStatusEffectById( uint32_t id )
+void Chara::replaceSingleStatusEffectById( uint32_t id, StatusEffect::StatusEffectPtr pStatus )
 {
   for( const auto& effectIt : m_statusEffectMap )
   {
     if( effectIt.second->getId() == id )
     {
-      removeStatusEffect( effectIt.first, false );
+      replaceSingleStatusEffect( effectIt.first, pStatus );
       break;
     }
   }
@@ -1063,16 +1073,25 @@ void Chara::knockback( const FFXIVARR_POSITION3& origin, float distance, bool ig
     }
     setPos( navPos );
     // speed needs to be reset properly here
-    pNav->updateAgentPosition( getAgentId(), getPos(), getRadius(), 1 );
+    setAgentId( pNav->updateAgentPosition( getAgentId(), getPos(), getRadius(), pNav->getAgentSpeed( getAgentId() ) ) );
   }
   else
   {
     setPos( kbPos );
   }
   pTeri->updateActorPosition( *this );
+
+  auto pTransferPacket = makeZonePacket< FFXIVIpcTransfer >( getId() );
+  pTransferPacket->data().dir = Common::Util::floatToUInt16Rot( getRot() );
+  pTransferPacket->data().pos[ 0 ] = Common::Util::floatToUInt16( kbPos.x );
+  pTransferPacket->data().pos[ 1 ] = Common::Util::floatToUInt16( kbPos.y );
+  pTransferPacket->data().pos[ 2 ] = Common::Util::floatToUInt16( kbPos.z );
+  pTransferPacket->data().duration = 1.0f;
+
   // todo: send the correct knockback packet to player
   server().queueForPlayers( getInRangePlayerIds(),
-                            std::make_shared< MoveActorPacket >( *this, getRotUInt8(), 2, 0, 0, 0x5A / 4 ) );
+                            pTransferPacket );
+
 }
 
 void Chara::createAreaObject( uint32_t actionId, uint32_t actionPotency, uint32_t vfxId, float scale,

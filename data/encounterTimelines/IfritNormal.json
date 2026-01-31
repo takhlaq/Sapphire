@@ -292,6 +292,15 @@
             },
             {
               "data": {
+                "actionTimelineId": 140,
+                "actorName": "Ifrit"
+              },
+              "description": "",
+              "startTime": 2000,
+              "type": "actionTimeline"
+            },
+            {
+              "data": {
                 "actorName": "Ifrit",
                 "pos": [
                   0.0,
@@ -306,17 +315,8 @@
                 "targetType": "self"
               },
               "description": "",
-              "startTime": 0,
+              "startTime": 2100,
               "type": "setPos"
-            },
-            {
-              "data": {
-                "actionTimelineId": 140,
-                "actorName": "Ifrit"
-              },
-              "description": "",
-              "startTime": 2000,
-              "type": "actionTimeline"
             },
             {
               "data": {

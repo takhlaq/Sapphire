@@ -146,7 +146,7 @@ namespace Sapphire::Entity
 
     void replaceSingleStatusEffect( uint32_t slotId, StatusEffect::StatusEffectPtr pStatus );
 
-    void replaceSingleStatusEffectById( uint32_t id );
+    void replaceSingleStatusEffectById( uint32_t id, StatusEffect::StatusEffectPtr pStatus );
 
     void removeSingleStatusEffectById( uint32_t id );
 

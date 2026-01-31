@@ -539,7 +539,8 @@ namespace Sapphire
           if( pBNpc->getAgentId() != -1 )
           {
             auto pNavi = pTeri->getNaviProvider();
-            pBNpc->setAgentId( pNavi->updateAgentPosition( pBNpc->getAgentId(), pos, pBNpc->getRadius(), pNavi->getAgentSpeed( pBNpc->getAgentId() ) ) );
+            if( pNavi )
+              pBNpc->setAgentId( pNavi->updateAgentPosition( pBNpc->getAgentId(), pos, pBNpc->getRadius(), pNavi->getAgentSpeed( pBNpc->getAgentId() ) ) );
           }
           pBNpc->setRot( rot );
           pBNpc->setPos( pos, true );

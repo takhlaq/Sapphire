@@ -80,18 +80,7 @@
     "nextCombo": [],
     "aggroModifier": 1.0,
     "statuses": {
-      "caster": [
-        {
-          "id": 325,
-          "duration": 8000,
-          "modifiers": [
-            {
-              "modifier": "DamageTakenPercent",
-              "value": -100
-            }
-          ]
-        }
-      ],
+      "caster": [],
       "target": []
     }
   },

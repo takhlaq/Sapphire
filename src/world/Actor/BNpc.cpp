@@ -768,7 +768,7 @@ void BNpc::notifyPlayerDeaggro( const CharaPtr& pChara )
   if( getTriggerOwnerId() == pChara->getId() )
   {
     auto& scriptMgr = Common::Service< Scripting::ScriptMgr >::ref();
-    auto bnpc = *getAsBNpc();
+    auto& bnpc = *getAsBNpc();
     scriptMgr.onTriggerOwnerDeaggro( *tmpPlayer, bnpc );
   }
 }
