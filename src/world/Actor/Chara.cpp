@@ -365,9 +365,19 @@ bool Chara::checkAction()
   if( m_pCurrentAction == nullptr )
     return false;
 
-  if( m_pCurrentAction->update() )
+  // delay removing action for 3 ticks after interrupting
+  // idk why it has to be 3 but any less is inconsistent
+  if( m_pCurrentAction->isInterrupted() && m_pCurrentAction->getInterruptTickCount() < 3 )
+  {
+    if( m_pCurrentAction->getInterruptTickCount() == -1 )
+      m_pCurrentAction->update();
+    else
+      m_pCurrentAction->addInterruptTickCount();
+  }
+  else if( m_pCurrentAction->update() )
+  {
     m_pCurrentAction.reset();
-
+  }
   return true;
 }
 

@@ -216,6 +216,16 @@ bool Action::Action::isInterrupted() const
   return m_interruptType != Common::ActionInterruptType::None;
 }
 
+int Action::Action::getInterruptTickCount() const
+{
+  return m_interruptTickCount;
+}
+
+void Action::Action::addInterruptTickCount()
+{
+  m_interruptTickCount++;
+}
+
 Common::ActionInterruptType Action::Action::getInterruptType() const
 {
   return m_interruptType;
@@ -423,7 +433,7 @@ void Action::Action::interrupt()
   }
 
   onInterrupt();
-
+  addInterruptTickCount();
 }
 
 void Action::Action::onInterrupt()

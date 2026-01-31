@@ -262,4 +262,4 @@ namespace Sapphire
     bool isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const override;
   };
 
-}// namespace Sapphire::Encounter
+}// namespace Sapphire

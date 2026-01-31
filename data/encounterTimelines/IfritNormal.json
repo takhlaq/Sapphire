@@ -315,7 +315,7 @@
                 "targetType": "self"
               },
               "description": "",
-              "startTime": 2100,
+              "startTime": 2500,
               "type": "setPos"
             },
             {
@@ -1128,7 +1128,7 @@
             {
               "data": {},
               "description": "",
-              "startTime": 8000,
+              "startTime": 4000,
               "type": "idle"
             }
           ]
