@@ -1547,10 +1547,10 @@ void Player::resetRecastGroups()
   Network::Util::Packet::sendRecastGroups( *this );
 }
 
-bool Player::checkAction()
+void Player::processActions()
 {
   if( m_pCurrentAction == nullptr )
-    return false;
+    return;
 
   if( m_pCurrentAction->update() )
   {
@@ -1567,8 +1567,6 @@ bool Player::checkAction()
       m_pQueuedAction = nullptr;
     }
   }
-
-  return true;
 }
 
 uint64_t Player::getPartyId() const

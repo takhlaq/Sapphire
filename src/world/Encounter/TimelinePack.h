@@ -41,7 +41,7 @@ namespace Sapphire
     
     uint64_t m_startTime{ 0 };
     std::shared_ptr< Encounter > m_pEncounter;
-    uint32_t m_rngVal{ 0xFFFFFFFF };
+    std::map< uint32_t, uint64_t > m_vars;
 
   public:
     TimelinePack() {}
@@ -92,9 +92,9 @@ namespace Sapphire
 
     void setEncounter( std::shared_ptr< Encounter > pEncounter );
 
-    uint32_t getRNGVal() const;
+    uint32_t getVar( uint32_t index ) const;
 
-    void rollRNG( uint32_t min, uint32_t max );
+    void setVar( uint32_t index, uint32_t val );
 
     static TimeLinePackPtr createTimelinePack( const std::string& name );
   };

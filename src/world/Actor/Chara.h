@@ -295,7 +295,9 @@ namespace Sapphire::Entity
 
     virtual void restoreMP( uint32_t amount );
 
-    virtual bool checkAction();
+    virtual void processActions();
+
+    bool hasAction() const;
 
     virtual void update( uint64_t tickCount );
 

@@ -41,10 +41,7 @@ namespace Sapphire
 
   bool ConditionDirectorVar::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
   {
-    auto pTeri = pEncounter->getTeriPtr();
-    Event::DirectorPtr pDirector = pTeri->getAsInstanceContent();
-    if( pDirector == nullptr )
-      pDirector = pTeri->getAsQuestBattle();
+    auto pDirector = pEncounter->getDirector();
 
     switch( m_conditionType )
     {
@@ -142,9 +139,33 @@ namespace Sapphire
     return false;
   }
 
-  bool ConditionRNGEquals::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
+  bool ConditionVarEquals::isConditionMet( ConditionState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
   {
-    return pack.getRNGVal() == m_val;
+    auto pDirector = pEncounter->getDirector();
+
+    switch( m_type )
+    {
+      case VarType::Director:
+      {
+        if( pDirector )
+          return pDirector->getDirectorVar( m_index ) == m_val;
+      }
+      break;
+      case VarType::Custom:
+      {
+        if( pDirector )
+          return pDirector->getCustomVar( m_index ) == m_val;
+      }
+      break;
+      case VarType::Pack:
+      {
+        return pack.getVar( m_index ) == m_val;
+      }
+      break;
+      default:
+        break;
+    }
+    return false;
   }
 
   void ConditionHp::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition,
@@ -302,13 +323,23 @@ namespace Sapphire
     m_actionId = actionId;
   }
 
-  void ConditionRNGEquals::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors )
+  void ConditionVarEquals::from_json( nlohmann::json& json, Schedule& phase, ConditionType condition, const std::unordered_map< std::string, TimelineActor >& actors )
   {
     ScheduleCondition::from_json( json, phase, condition, actors );
 
     auto& paramData = json.at( "paramData" );
+    auto index = paramData.at( "index" ).get< uint32_t >();
     auto val = paramData.at( "val" ).get< uint32_t >();
+    auto type = paramData.at( "type" ).get< std::string >();
 
+    if( type == "director" )
+      m_type = VarType::Director;
+    else if( type == "custom" )
+      m_type = VarType::Custom;
+    else
+      m_type = VarType::Pack;
+
+    m_index = index;
     m_val = val;
   }
 

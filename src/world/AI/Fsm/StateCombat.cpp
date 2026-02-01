@@ -20,7 +20,7 @@ void AI::Fsm::StateCombat::onUpdate( Entity::BNpc& bnpc, uint64_t tickCount )
     return;
   }
   auto pNaviProvider = pZone->getNaviProvider();
-  bool hasQueuedAction = bnpc.checkAction();
+  bool hasQueuedAction = bnpc.hasAction();
 
   if( hasQueuedAction )
     return;

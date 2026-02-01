@@ -91,6 +91,13 @@ namespace Sapphire
     And // idx &= val
   };
 
+  enum class VarType : uint32_t
+  {
+    Director,
+    Custom,
+    Pack
+  };
+
   //
   // Timepoint.m_pData objects
   //
@@ -340,11 +347,15 @@ namespace Sapphire
   {
     uint32_t m_min;
     uint32_t m_max;
+    VarType m_type;
+    uint32_t m_idx;
 
-    TimepointDataRollRNG( uint32_t min, uint32_t max ) :
+    TimepointDataRollRNG( uint32_t min, uint32_t max, VarType type, uint32_t varIdx ) :
       TimepointData( TimepointDataType::RollRNG ),
       m_min( min ),
-      m_max( max )
+      m_max( max ),
+      m_type( type ),
+      m_idx( varIdx )
     {
     }
   };

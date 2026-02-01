@@ -14,6 +14,9 @@
 
 #include <Manager/ActionMgr.h>
 #include <Manager/PlayerMgr.h>
+
+#include <Random/RNGMgr.h>
+
 #include <Service.h>
 
 #include <Territory/QuestBattle.h>
@@ -109,6 +112,13 @@ namespace Sapphire
       { "target",         SetPosTargetType::Target },
       { "selectorPos",    SetPosTargetType::SelectorPos },
       { "selectorTarget", SetPosTargetType::SelectorTarget }
+    };
+
+    const static std::unordered_map< std::string, VarType > varTypeMap =
+    {
+      { "director", VarType::Director },
+      { "custom",   VarType::Custom },
+      { "pack",     VarType::Pack }
     };
 
     TimepointDataType tpType{ 0 };
@@ -367,8 +377,10 @@ namespace Sapphire
         auto& dataJ = json.at( "data" );
         auto min = dataJ.at( "min" ).get< uint32_t >();
         auto max = dataJ.at( "max" ).get< uint32_t >();
+        auto type = varTypeMap.at( dataJ.at( "type" ).get< std::string >() );
+        auto idx = dataJ.at( "index" ).get< uint32_t >();
 
-        m_pData = std::make_shared< TimepointDataRollRNG >( min, max );
+        m_pData = std::make_shared< TimepointDataRollRNG >( min, max, type, idx );
       }
       break;
       default:
@@ -873,12 +885,36 @@ namespace Sapphire
       break;
       case TimepointDataType::RollRNG:
       {
-        // todo: maybe a way to store this to director var?
-        //       or just have a script grab pEncounter->getTimelinePack()->getRNGVal();
         auto pRNGData = std::dynamic_pointer_cast< TimepointDataRollRNG, TimepointData >( m_pData );
 
-        pack.rollRNG( pRNGData->m_min, pRNGData->m_max );
+        auto& rngMgr = Common::Service< Common::Random::RNGMgr >::ref();
+        auto val = rngMgr.getRandGenerator( pRNGData->m_min, pRNGData->m_max ).next();
+
+        switch( pRNGData->m_type )
+        {
+          case VarType::Director:
+          {
+            auto pDirector = pEncounter->getDirector();
+            if( pDirector)
+              pDirector->setDirectorVar( pRNGData->m_idx, val );
+          }
+          break;
+          case VarType::Custom:
+          {
+            auto pDirector = pEncounter->getDirector();
+            if( pDirector )
+              pDirector->setCustomVar( pRNGData->m_idx, val );
+          }
+          break;
+          case VarType::Pack:
+          {
+            // todo: probably get rid of this?
+            pack.setVar( pRNGData->m_idx, val );
+          }
+          break;
+        }
       }
+
       break;
       default:
         break;

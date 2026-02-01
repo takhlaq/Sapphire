@@ -108,7 +108,7 @@ namespace Sapphire
       { "hpPctLessThan",            ConditionType::HpPctLessThan },
       { "hpPctBetween",             ConditionType::HpPctBetween },
 
-      { "directorVarEquals",        ConditionType::DirectorVarEquals },
+      { "varEquals",                ConditionType::VarEquals },
       { "directorVarGreaterThan",   ConditionType::DirectorVarGreaterThan },
 
       { "directorSeqEquals",        ConditionType::DirectorSeqEquals },
@@ -125,7 +125,6 @@ namespace Sapphire
       { "getAction",                ConditionType::GetAction },
       { "scheduleActive",           ConditionType::ScheduleActive },
       { "interruptedAction",        ConditionType::InterruptedAction },
-      { "rngEquals",                ConditionType::RNGEquals }
     };
 
     auto pack = std::make_shared< TimelinePack >();
@@ -289,9 +288,9 @@ namespace Sapphire
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
             break;
-            case ConditionType::RNGEquals:
+            case ConditionType::VarEquals:
             {
-              pCondition = std::make_shared< ConditionRNGEquals >();
+              pCondition = std::make_shared< ConditionVarEquals >();
               pCondition->from_json( pcV, schedule, condition, actorNameMap );
             }
             break;
@@ -424,14 +423,16 @@ namespace Sapphire
     m_pEncounter = pEncounter;
   }
 
-  uint32_t TimelinePack::getRNGVal() const
+  uint32_t TimelinePack::getVar( uint32_t index ) const
   {
-    return m_rngVal;
+    auto it = m_vars.find( index );
+    if( it != m_vars.end() )
+      return it->second;
+    return 0xFFFFFFFF;
   }
 
-  void TimelinePack::rollRNG( uint32_t min, uint32_t max )
+  void TimelinePack::setVar( uint32_t index, uint32_t val )
   {
-    auto& rngMgr = Common::Service< Common::Random::RNGMgr >::ref();
-    m_rngVal = rngMgr.getRandGenerator( min, max ).next();
+    m_vars[index] = val;
   }
 }// namespace Sapphire::Encounter

@@ -357,16 +357,14 @@ void Chara::setStance( Stance stance )
 /*!
 Check if an action is queued for execution, if so update it
 and if fully performed, clean up again.
-
-\return true if a queued action has been updated
 */
-bool Chara::checkAction()
+void Chara::processActions()
 {
   if( m_pCurrentAction == nullptr )
-    return false;
+    return;
 
-  // delay removing action for 3 ticks after interrupting
-  // idk why it has to be 3 but any less is inconsistent
+  // delay removing action for 3 tick after interrupting
+  // todo: why does this need to be held for 3 ticks for TimelinePack to pick this up?
   if( m_pCurrentAction->isInterrupted() && m_pCurrentAction->getInterruptTickCount() < 3 )
   {
     if( m_pCurrentAction->getInterruptTickCount() == -1 )
@@ -378,12 +376,17 @@ bool Chara::checkAction()
   {
     m_pCurrentAction.reset();
   }
-  return true;
+}
+
+bool Chara::hasAction() const
+{
+  return m_pCurrentAction != nullptr;
 }
 
 void Chara::update( uint64_t tickCount )
 {
   updateStatusEffects();
+  processActions();
 
   if( std::difftime( static_cast< time_t >( tickCount ), m_lastTickTime ) > 3000 )
   {
