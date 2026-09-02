@@ -45,6 +45,8 @@ namespace Sapphire::Entity
     /*! Parent cell in the zone */
     Common::CellId m_cellId;
 
+    World::AI::ControllerPtr m_pController{ nullptr };
+
   public:
     explicit GameObject( Common::ObjKind type );
 
@@ -153,6 +155,9 @@ namespace Sapphire::Entity
     // set the current cell
     void setCellId( Common::CellId cellId );
 
+
+    World::AI::ControllerPtr getController();
+    void setController( World::AI::ControllerPtr pController );
   };
 
 }

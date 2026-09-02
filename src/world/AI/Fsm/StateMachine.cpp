@@ -13,24 +13,39 @@ AI::Fsm::StatePtr AI::Fsm::StateMachine::addState( Fsm::StatePtr state )
   return state;
 }
 
+AI::Fsm::StatePtr AI::Fsm::StateMachine::getCurrentState()
+{
+  return m_pCurrentState;
+}
+
 void AI::Fsm::StateMachine::setCurrentState( Fsm::StatePtr state )
 {
   m_pCurrentState = state;
 }
 
-void AI::Fsm::StateMachine::update( Entity::BNpc& bnpc, uint64_t tickCount )
+void AI::Fsm::StateMachine::update( uint64_t tickCount )
 {
-  if( !m_pCurrentState )
+  auto& pCurrentState = m_pCurrentState;
+
+  // todo: support forcing new state, then resuming old one (e.g. follow scripted path during combat, reach dest, transition back to combat)
+  /*
+  if( !m_stateStack.empty() )
+  {
+    pCurrentState = m_stateStack.front();
+    m_stateStack.pop_front();
+  }
+  //*/
+  if( !pCurrentState )
     return;
 
-  TransitionPtr transition = m_pCurrentState->getTriggeredTransition( bnpc );
+  TransitionPtr transition = pCurrentState->getTriggeredTransition( m_pOwner );
 
   if( transition )
   {
-    m_pCurrentState->onExit( bnpc );
-    m_pCurrentState = transition->getTargetState();
-    m_pCurrentState->onEnter( bnpc );
+    pCurrentState->onExit( m_pOwner );
+    pCurrentState = transition->getTargetState();
+    pCurrentState->onEnter( m_pOwner );
   }
 
-  m_pCurrentState->onUpdate( bnpc, tickCount );
+  pCurrentState->onUpdate( m_pOwner, tickCount );
 }

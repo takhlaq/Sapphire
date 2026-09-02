@@ -1,7 +1,13 @@
 #include <cstdint>
+
+#include <Util/Util.h>
+
 #include "ForwardsZone.h"
+
 #include "Actor/BNpc.h"
+#include "Actor/GameObject.h"
 #include "Transition.h"
+
 
 #pragma once
 
@@ -10,11 +16,16 @@ namespace Sapphire::World::AI::Fsm
   class State
   {
   public:
+    State() :
+      m_lastTick( Common::Util::getTimeMs() )
+    {
+
+    }
     virtual ~State() = default;
 
-    virtual void onUpdate( Entity::BNpc& bnpc, uint64_t tickCount ) = 0;
-    virtual void onEnter( Entity::BNpc& bnpc ) { }
-    virtual void onExit( Entity::BNpc& bnpc ) { }
+    virtual void onUpdate( Entity::GameObjectPtr& pEntity, uint64_t tickCount ) { }
+    virtual void onEnter( Entity::GameObjectPtr& pEntity ) { }
+    virtual void onExit( Entity::GameObjectPtr& pEntity ) { }
 
     void addTransition( TransitionPtr transition )
     {
@@ -27,17 +38,18 @@ namespace Sapphire::World::AI::Fsm
     }
 
 
-    TransitionPtr getTriggeredTransition( Entity::BNpc& bnpc )
+    TransitionPtr getTriggeredTransition( Entity::GameObjectPtr& pObject )
     {
-      for( auto transition : m_transitions )
+      for( auto& transition : m_transitions )
       {
-        if( transition->hasTriggered( bnpc ) )
+        if( transition->hasTriggered( pObject ) )
           return transition;
       }
       return nullptr;
     }
 
   private:
+    uint64_t m_lastTick;
     std::vector< TransitionPtr > m_transitions;
   };
 }

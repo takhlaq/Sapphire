@@ -1,8 +1,13 @@
 #include <cstdint>
-#include "ForwardsZone.h"
-#include "Actor/BNpc.h"
+
 #include <Util/Util.h>
 #include <Util/UtilMath.h>
+
+#include "ForwardsZone.h"
+
+#include <Actor/GameObject.h>
+#include <Actor/BNpc.h>
+#include <Actor/Player.h>
 
 #pragma once
 
@@ -14,10 +19,10 @@ namespace Sapphire::World::AI::Fsm
     Condition() = default;
     virtual ~Condition() = default;
 
-    virtual bool isConditionMet( Sapphire::Entity::BNpc& src ) const = 0;
-    virtual bool update( Sapphire::Entity::BNpc& src, float time )
+    virtual bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const = 0;
+    virtual bool update( Sapphire::Entity::GameObjectPtr& pEntity, float time )
     {
-      if( isConditionMet( src ) )
+      if( isConditionMet( pEntity ) )
         return true;
       return false;
     };
@@ -26,9 +31,10 @@ namespace Sapphire::World::AI::Fsm
   class RoamNextTimeReachedCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      if( ( Common::Util::getTimeSeconds() - src.getLastRoamTargetReachedTime() ) > 20 )
+      auto pBNpc = pEntity->getAsBNpc();
+      if( pBNpc && ( Common::Util::getTimeSeconds() - pBNpc->getLastRoamTargetReachedTime() ) > 20 )
         return true;
       return false;
     }
@@ -37,9 +43,10 @@ namespace Sapphire::World::AI::Fsm
   class RoamTargetReachedCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      if( src.isRoamTargetReached() )
+      auto pBNpc = pEntity->getAsBNpc();
+      if( pBNpc && pBNpc->isRoamTargetReached() )
         return true;
       return false;
     }
@@ -48,9 +55,14 @@ namespace Sapphire::World::AI::Fsm
   class HateListEmptyCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      if( src.hateListGetHighest() )
+      auto pBNpc = pEntity->getAsBNpc();
+      if( pBNpc && pBNpc->hateListGetHighest() )
+        return false;
+
+      auto pPlayer = pEntity->getAsPlayer();
+      if( pPlayer && !pPlayer->getHateList().empty() )
         return false;
       return true;
     }
@@ -59,10 +71,16 @@ namespace Sapphire::World::AI::Fsm
   class HateListHasEntriesCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      if( src.hateListGetHighest() )
+      auto pBNpc = pEntity->getAsBNpc();
+      if( pBNpc && pBNpc->hateListGetHighest() )
         return true;
+
+      auto pPlayer = pEntity->getAsPlayer();
+      if( pPlayer && !pPlayer->getHateList().empty() )
+        return true;
+
       return false;
     }
   };
@@ -70,12 +88,16 @@ namespace Sapphire::World::AI::Fsm
   class SpawnPointDistanceGtMaxDistanceCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      auto distanceOrig = Common::Util::distance( src.getPos(), src.getSpawnPos() );
-      if( distanceOrig > 40 )
-        return true;
+      auto pBNpc = pEntity->getAsBNpc();
 
+      if( pBNpc )
+      {
+        auto distanceOrig = Common::Util::distance( pBNpc->getPos(), pBNpc->getSpawnPos() );
+        if( distanceOrig > 40 )
+          return true;
+      }
       return false;
     }
   };
@@ -83,9 +105,10 @@ namespace Sapphire::World::AI::Fsm
   class IsDeadCondition : public Condition
   {
   public:
-    bool isConditionMet( Sapphire::Entity::BNpc& src ) const override
+    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override
     {
-      if( !src.isAlive() )
+      auto pChara = pEntity->getAsChara();
+      if( !pChara->isAlive() )
         return true;
 
       return false;

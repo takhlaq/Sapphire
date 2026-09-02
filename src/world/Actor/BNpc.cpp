@@ -62,6 +62,8 @@
 #include <AI/Fsm/StateResumePath.h>
 #include <AI/TargetHelper.h>
 
+#include <AI/Controller/BNpcOverworldController.h>
+
 using namespace Sapphire;
 using namespace Sapphire::World;
 using namespace Sapphire::Common;
@@ -786,12 +788,11 @@ void BNpc::update( uint64_t tickCount )
 {
   Chara::update( tickCount );
 
-  checkAggro();
+  if( m_pController )
+    m_pController->update( tickCount );
   // removed check for now, replaced by position check to last position
   //if( m_dirtyFlag & DirtyFlag::Position )
   sendPositionUpdate( tickCount );
-
-  m_fsm->update( *this, tickCount );
 }
 
 void BNpc::restHp()
@@ -1302,6 +1303,8 @@ void BNpc::init()
 
   m_lastRoamTargetReachedTime = Common::Util::getTimeSeconds();
 
+  std::shared_ptr< AI::GambitPack > pGambitPack{ nullptr };
+
   /*
   //setup a test gambit
   auto testGambitRule = AI::make_GambitRule( AI::make_TopHateTargetCondition(), Action::make_Action( getAsChara(), 88, 0 ), 5000 );
@@ -1323,64 +1326,18 @@ void BNpc::init()
   gambitPack->addTimeLine( AI::make_TopHateTargetCondition(), Action::make_Action( getAsChara(), 82, 0 ), 14 );
   m_pGambitPack = gambitPack;
   */
-  initFsm();
+  m_pController = std::make_shared< AI::BNpcOverworldController >( shared_from_this() );
+  m_pController->setGambitPack( pGambitPack );
 }
 
 void BNpc::initFsm()
 {
-  using namespace AI::Fsm;
-  m_fsm = make_StateMachine();
-  auto stateIdle = make_StateIdle();
-  auto stateCombat = make_StateCombat();
-  auto stateDead = make_StateDead();
-
-  auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-  auto pZone = teriMgr.getTerritoryByGuId( getTerritoryId() );
-
-  if( m_pInfo->ServerPathId != 0 && pZone && pZone->getServerPath( m_pInfo->ServerPathId ) )
-  {
-    auto statePath = make_StateFollowPath();
-    auto stateResumePath = make_StateResumePath();
-    statePath->addTransition( stateCombat, make_HateListHasEntriesCondition() );
-    statePath->addTransition( stateDead, make_IsDeadCondition() );
-
-    stateCombat->addTransition( stateDead, make_IsDeadCondition() );
-    stateCombat->addTransition( stateResumePath, make_HateListEmptyCondition() );
-    stateResumePath->addTransition( statePath, make_RoamTargetReachedCondition() );
-
-    m_fsm->addState( statePath );
-
-    m_fsm->setCurrentState( statePath );
-  }
-  else
-  {
-    if( !hasFlag( Immobile ) && !hasFlag( NoRoam ) )
-    {
-      auto stateRoam = make_StateRoam();
-      stateIdle->addTransition( stateRoam, make_RoamNextTimeReachedCondition() );
-      stateRoam->addTransition( stateIdle, make_RoamTargetReachedCondition() );
-      stateRoam->addTransition( stateCombat, make_HateListHasEntriesCondition() );
-      stateRoam->addTransition( stateDead, make_IsDeadCondition() );
-      m_fsm->addState( stateRoam );
-    }
-    stateIdle->addTransition( stateCombat, make_HateListHasEntriesCondition() );
-    //stateCombat->addTransition( stateIdle, make_HateListEmptyCondition() );
-    stateIdle->addTransition( stateDead, make_IsDeadCondition() );
-    stateCombat->addTransition( stateDead, make_IsDeadCondition() );
-    m_fsm->addState( stateIdle );
-    if( !hasFlag( NoDeaggro ) )
-    {
-      auto stateRetreat = make_StateRetreat();
-      stateCombat->addTransition( stateRetreat, make_SpawnPointDistanceGtMaxDistanceCondition() );
-      stateCombat->addTransition( stateRetreat, make_HateListEmptyCondition() );
-      stateRetreat->addTransition( stateIdle, make_RoamTargetReachedCondition() );
-    }
-    m_fsm->setCurrentState( stateIdle );
-  }
+  // todo: assign controller based on mob type
 }
 
 void BNpc::processGambits( uint64_t tickCount )
 {
+  // todo: should this be handled by Controller instead of BNpc?
   m_tp = 1000;
   if( m_pGambitPack )
     m_pGambitPack->update( *this, tickCount );

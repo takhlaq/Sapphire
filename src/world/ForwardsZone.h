@@ -56,6 +56,9 @@ namespace World::AI
   TYPE_FORWARD( GambitPack );
   TYPE_FORWARD( GambitTimeLinePack );
   TYPE_FORWARD( GambitRuleSetPack );
+
+  TYPE_FORWARD( Controller );
+  TYPE_FORWARD( BNpcOverworldController );
 }
 
 namespace World::AI::Fsm
