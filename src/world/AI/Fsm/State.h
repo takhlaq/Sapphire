@@ -27,6 +27,16 @@ namespace Sapphire::World::AI::Fsm
     virtual void onEnter( Entity::GameObjectPtr& pEntity ) { }
     virtual void onExit( Entity::GameObjectPtr& pEntity ) { }
 
+    bool hasInitialised() const
+    {
+      return m_initialised;
+    }
+
+    void setInitialised( bool initialised )
+    {
+      m_initialised = initialised;
+    }
+
     void addTransition( TransitionPtr transition )
     {
       m_transitions.push_back( transition );
@@ -37,6 +47,15 @@ namespace Sapphire::World::AI::Fsm
       m_transitions.push_back( make_Transition( targetState, condition ) );
     }
 
+    template< typename T, typename = std::enable_if_t< std::is_base_of< State, T >::value > >
+    bool hasTransitionToState()
+    {
+      auto ret = false;
+      for( const auto& transition : m_transitions )
+        ret = transition && transition->getTargetState() && dynamic_cast< T* >( transition->getTargetState().get() );
+
+      return ret;
+    }
 
     TransitionPtr getTriggeredTransition( Entity::GameObjectPtr& pObject )
     {
@@ -48,7 +67,13 @@ namespace Sapphire::World::AI::Fsm
       return nullptr;
     }
 
-  private:
+    const std::vector< TransitionPtr >& getTransitions() const
+    {
+      return m_transitions;
+    }
+
+  protected:
+    bool m_initialised{ false };
     uint64_t m_lastTick;
     std::vector< TransitionPtr > m_transitions;
   };

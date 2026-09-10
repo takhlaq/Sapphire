@@ -7,6 +7,9 @@
 #include <Territory/Territory.h>
 #include <Navi/NaviProvider.h>
 
+#include <AI/Controller/Controller.h>
+#include <AI/Controller/BNpcOverworldController.h>
+
 using namespace Sapphire::World;
 
 void AI::Fsm::StateResumePath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_t tickCount )
@@ -50,6 +53,35 @@ void AI::Fsm::StateResumePath::onEnter( Entity::GameObjectPtr& pEntity )
     bnpc.setInvincibilityType( Common::InvincibilityType::InvincibilityIgnoreDamage );
     bnpc.setRoamTargetReached( false );
 
+    auto pController = pBNpc->getController();
+    auto& path = pController->getPath();
+
+    auto currentPos = pBNpc->getPos();
+
+    uint8_t closestPointIndex = path.m_currPointIndex;
+    float closestDistance = std::numeric_limits< float >::max();
+
+    for( auto i = closestPointIndex; i < path.m_points.size(); ++i )
+    {
+      const auto& pointPos = path.m_points[ i ];
+      float distance = std::sqrt(
+              std::pow( currentPos.x - pointPos.x, 2 ) +
+              std::pow( currentPos.y - pointPos.y, 2 ) +
+              std::pow( currentPos.z - pointPos.z, 2 ) );
+
+      if( distance < closestDistance )
+      {
+        closestDistance = distance;
+        closestPointIndex = i;
+      }
+    }
+
+    path.m_currPointIndex = closestPointIndex;
+
+    if( !path.m_points.empty() )
+      bnpc.setRoamTargetPos( path.m_points[ path.m_currPointIndex ] );
+
+    /*
     // Get the active server path
     auto path = bnpc.getActiveServerPath();
     if( !path || path->points.empty() )
@@ -95,6 +127,7 @@ void AI::Fsm::StateResumePath::onEnter( Entity::GameObjectPtr& pEntity )
 
     Logger::debug( "Resuming path at point index {}", closestPointIndex );
 
+    */
     if( pNaviProvider )
       pNaviProvider->setMoveTarget( bnpc.getAgentId(), bnpc.getRoamTargetPos() );
   }

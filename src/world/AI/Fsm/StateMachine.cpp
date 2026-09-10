@@ -1,4 +1,5 @@
 #include <cstdint>
+
 #include "ForwardsZone.h"
 #include "Actor/BNpc.h"
 #include "StateMachine.h"
@@ -38,14 +39,26 @@ void AI::Fsm::StateMachine::update( uint64_t tickCount )
   if( !pCurrentState )
     return;
 
+  // make sure we run at least once
+  if( !pCurrentState->hasInitialised() )
+  {
+    pCurrentState->onEnter( m_pOwner );
+    pCurrentState->setInitialised( true );
+  }
+
+  pCurrentState->onUpdate( m_pOwner, tickCount );
+
   TransitionPtr transition = pCurrentState->getTriggeredTransition( m_pOwner );
 
   if( transition )
   {
     pCurrentState->onExit( m_pOwner );
-    pCurrentState = transition->getTargetState();
-    pCurrentState->onEnter( m_pOwner );
-  }
+    pCurrentState->setInitialised( false );
 
-  pCurrentState->onUpdate( m_pOwner, tickCount );
+    pCurrentState = transition->getTargetState();
+
+    pCurrentState->onEnter( m_pOwner );
+    pCurrentState->onUpdate( m_pOwner, tickCount );
+
+  }
 }

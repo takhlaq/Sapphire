@@ -34,6 +34,12 @@ namespace Sapphire::World::AI::Fsm
 
     virtual void update( uint64_t tickCount );
 
+    template< typename T, typename = std::enable_if_t< std::is_base_of< State, T >::value > >
+    bool isCurrentState()
+    {
+      return m_pCurrentState && dynamic_cast< T* >( m_pCurrentState.get() );
+    }
+
   protected:
     std::deque< StatePtr > m_stateStack;
     Entity::GameObjectPtr m_pOwner;

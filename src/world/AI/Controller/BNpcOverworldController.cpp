@@ -16,15 +16,20 @@
 
 #include <Actor/BNpc.h>
 
+#include <Logging/Logger.h>
+
 namespace Sapphire::World::AI
 {
   BNpcOverworldController::BNpcOverworldController( Entity::GameObjectPtr pEntity ) :
     Controller( pEntity )
   {
+    m_pBNpc = pEntity->getAsBNpc();
+
     using namespace AI::Fsm;
 
     auto pBNpc = pEntity->getAsBNpc();
     auto pBNpcInfo = pBNpc->getInstanceObjectInfo();
+    auto& bnpc = *pBNpc;
 
     auto stateIdle = make_StateIdle();
     auto stateCombat = make_StateCombat();
@@ -47,6 +52,25 @@ namespace Sapphire::World::AI
       m_stateMachine.addState( statePath );
 
       m_stateMachine.setCurrentState( statePath );
+
+      auto pServerPath = pZone->getServerPath( pBNpcInfo->ServerPathId );
+      if( pServerPath )
+      {
+        std::vector< Common::Vector3 > points;
+        for( const auto& p : pServerPath->points )
+          points.push_back( { pServerPath->position.x + p.Translation.x,
+                              pServerPath->position.y + p.Translation.y,
+                              pServerPath->position.z + p.Translation.z } );
+
+        m_path.reset();
+
+        m_path.m_type = PathType::ServerPath;
+        m_path.m_flags = PathFlags::CanReversePath;
+        m_path.m_active = true;
+        m_path.m_points = points;
+      }
+
+      Logger::info( "Setting server path for BNpc {} Teri {} Pos {} {} {}", bnpc.getId(), bnpc.getTerritoryId(), bnpc.getPos().x, bnpc.getPos().y, bnpc.getPos().z );
     }
     else
     {
@@ -85,9 +109,8 @@ namespace Sapphire::World::AI
     if( m_pGambitPack )
       m_pGambitPack->update( *m_pOwner->getAsBNpc(), tick );
     */
-    auto pBNpc = m_pOwner->getAsBNpc();
-    pBNpc->checkAggro();
-    m_stateMachine.update( tick );
+    m_pBNpc->checkAggro();
+    Controller::update( tick );
   }
 
   bool BNpcOverworldController::tryAggro( uint32_t targetId )
@@ -121,14 +144,21 @@ namespace Sapphire::World::AI
     // todo:
   }
 
-  void BNpcOverworldController::pathTo( Common::Vector3& pos, const std::function< void(Common::Vector3&) >& onReachPoint, const std::function< void() >& onReachDestination )
+  void BNpcOverworldController::pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
   {
     // todo:
+    Controller::pathTo( pos, flags, onReachPoint, onReachDestination );
   }
 
-  void BNpcOverworldController::followPath( const std::vector< Common::Vector3 >& path, const std::function< void(Common::Vector3&) >& onReachPoint, const std::function< void() > onReachDestination )
+  void BNpcOverworldController::followPath( const std::vector< Common::Vector3 >& path, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
   {
     // todo:
+    Controller::followPath( path, flags, onReachPoint, onReachDestination );
+  }
+
+  void BNpcOverworldController::followTarget( uint32_t targetId, bool followDuringCombat )
+  {
+    Controller::followTarget( targetId, followDuringCombat );
   }
 
 }

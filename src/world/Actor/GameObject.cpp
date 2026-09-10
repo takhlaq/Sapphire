@@ -419,3 +419,18 @@ void GameObject::setController( Sapphire::World::AI::ControllerPtr pController )
 {
   m_pController = pController;
 }
+
+uint32_t GameObject::getFollowTargetId() const
+{
+  return m_followTargetId;
+}
+
+void GameObject::setFollowTargetId( uint32_t id )
+{
+  m_followTargetId = id;
+}
+
+void GameObject::resetFollowTargetId()
+{
+  m_followTargetId = Common::INVALID_GAME_OBJECT_ID;
+}

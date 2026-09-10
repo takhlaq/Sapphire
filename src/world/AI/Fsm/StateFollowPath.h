@@ -1,5 +1,8 @@
+#pragma once
+
 #include <cstdint>
 #include <functional>
+#include <vector>
 
 #include "ForwardsZone.h"
 #include "Actor/BNpc.h"
@@ -7,15 +10,13 @@
 
 #include <Vector3.h>
 
-#pragma once
-
 namespace Sapphire::World::AI::Fsm
 {
   class StateFollowPath : public State
   {
   public:
-    StateFollowPath( const std::function< void( Common::Vector3& ) >& onPointReachCb = {},
-                    const std::function< void( Common::Vector3& ) >& onDestReachCb = {} )
+    StateFollowPath( const std::function< void( Common::Vector3 ) >& onPointReachCb = {},
+                    const std::function< void() >& onDestReachCb = {} )
     {
       m_onPointReachCb = onPointReachCb;
       m_onDestReachCb = onDestReachCb;
@@ -27,7 +28,9 @@ namespace Sapphire::World::AI::Fsm
     void onExit( Entity::GameObjectPtr& pEntity ) override;
 
   private:
-    std::function< void( Common::Vector3& ) > m_onPointReachCb;
-    std::function< void( Common::Vector3& ) > m_onDestReachCb;
+    std::function< void( Common::Vector3 ) > m_onPointReachCb;
+    std::function< void() > m_onDestReachCb;
+
+    uint32_t m_initialPathType{ 0 };
   };
 }

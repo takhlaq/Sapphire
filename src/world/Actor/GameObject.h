@@ -47,6 +47,8 @@ namespace Sapphire::Entity
 
     World::AI::ControllerPtr m_pController{ nullptr };
 
+    uint32_t m_followTargetId{ Common::INVALID_GAME_OBJECT_ID };
+
   public:
     explicit GameObject( Common::ObjKind type );
 
@@ -158,6 +160,10 @@ namespace Sapphire::Entity
 
     World::AI::ControllerPtr getController();
     void setController( World::AI::ControllerPtr pController );
+
+    uint32_t getFollowTargetId() const;
+    void setFollowTargetId( uint32_t id );
+    void resetFollowTargetId();
   };
 
 }
