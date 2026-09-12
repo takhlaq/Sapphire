@@ -51,6 +51,12 @@ namespace Sapphire::World::AI::Fsm
 
     if( auto pBNpc = pEntity->getAsBNpc() )
     {
+      if( !pBNpc->isAlive() )
+      {
+        pBNpc->setFollowTargetId( Common::INVALID_GAME_OBJECT_ID );
+        return;
+      }
+
       if( pBNpc->moveTo( posOffset ) )
       {
         pBNpc->setNaviIsPathing( false );
@@ -86,10 +92,5 @@ namespace Sapphire::World::AI::Fsm
 
       pBNpc->face( pTarget->getPos() );
     }
-  }
-
-  void StateFollowTarget::setTargetId( uint32_t targetId )
-  {
-    m_targetId = targetId;
   }
 };

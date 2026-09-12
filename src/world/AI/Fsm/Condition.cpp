@@ -107,6 +107,9 @@ namespace Sapphire::World::AI::Fsm
 
   bool FollowTargetReachedCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
   {
+    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
+      return true;
+
     if( auto pController = pEntity->getController() )
     {
       auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
@@ -115,7 +118,7 @@ namespace Sapphire::World::AI::Fsm
       if( !pZone )
         return true;
 
-      float maxDist = 2.f;
+      volatile float maxDist = 2.f;
       if( auto pBNpc = pEntity->getAsBNpc() )
         maxDist = pBNpc->getNaviTargetReachedDistance();
 
@@ -130,8 +133,30 @@ namespace Sapphire::World::AI::Fsm
     return true;
   }
 
+  bool FollowTargetInvalidCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
+  {
+    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
+      return true;
+
+    if( auto pController = pEntity->getController() )
+    {
+      auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
+      auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
+
+      if( !pZone )
+        return true;
+
+      if( auto pTarget = pZone->getEntityById( pEntity->getFollowTargetId() ) )
+        return false;
+    }
+    return true;
+  }
+
   bool ShouldFollowTargetAlwaysCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
   {
+    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
+      return false;
+
     if( auto pController = pEntity->getController() )
     {
       auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
@@ -157,6 +182,9 @@ namespace Sapphire::World::AI::Fsm
 
   bool ShouldFollowTargetOutOfCombatCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
   {
+    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
+      return false;
+
     if( auto pController = pEntity->getController() )
     {
       // todo: proper in combat flags?
@@ -169,11 +197,11 @@ namespace Sapphire::World::AI::Fsm
       if( !pZone )
         return true;
 
-      float maxDist = 2.f;
+      volatile float maxDist = 3.f;
       if( auto pBNpc = pEntity->getAsBNpc() )
         maxDist = pBNpc->getNaviTargetReachedDistance();
 
-      maxDist = maxDist < 2.f ? 2.f : maxDist;
+      maxDist = maxDist < 3.f ? 3.f : maxDist;
 
       if( auto pTarget = pZone->getEntityById( pEntity->getFollowTargetId() ) )
       {

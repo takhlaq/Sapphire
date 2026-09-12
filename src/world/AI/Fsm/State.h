@@ -52,7 +52,12 @@ namespace Sapphire::World::AI::Fsm
     {
       auto ret = false;
       for( const auto& transition : m_transitions )
+      {
         ret = transition && transition->getTargetState() && dynamic_cast< T* >( transition->getTargetState().get() );
+
+        if( ret )
+          break;
+      }
 
       return ret;
     }
@@ -74,7 +79,7 @@ namespace Sapphire::World::AI::Fsm
 
   protected:
     bool m_initialised{ false };
-    uint64_t m_lastTick;
+    uint64_t m_lastTick{ 0 };
     std::vector< TransitionPtr > m_transitions;
   };
 }

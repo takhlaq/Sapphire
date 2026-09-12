@@ -164,53 +164,7 @@ namespace Sapphire::World::AI
 
   void Controller::followTarget( uint32_t targetId, bool followDuringCombat )
   {
-    // todo: follow target state
-
     m_pOwner->setFollowTargetId( targetId );
-
-    if( targetId == Common::INVALID_GAME_OBJECT_ID )
-      return;
-
-    auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-    auto pZone = teriMgr.getTerritoryByGuId( m_pOwner->getTerritoryId() );
-
-    if( !pZone )
-      return;
-
-    auto pTarget = pZone->getEntityById( targetId );
-    if( !pTarget )
-      return;
-
-    auto pCurrState = m_stateMachine.getCurrentState();
-    if( pCurrState && !pCurrState->hasTransitionToState< Fsm::StateFollowTarget >() )
-    {
-      bool isCombatState = m_stateMachine.isCurrentState< Fsm::StateCombat >();
-      bool isDeathState = m_stateMachine.isCurrentState< Fsm::StateDead >();
-      bool isPathState = m_stateMachine.isCurrentState< Fsm::StateFollowPath >();
-      bool isFollowState = m_stateMachine.isCurrentState< Fsm::StateFollowTarget >();
-
-      bool createTransition = false;
-      if( !isDeathState && !isPathState && !isFollowState && !pCurrState->hasTransitionToState< Fsm::StateFollowTarget >() )
-        createTransition = true;
-
-      // todo: disallow following during combat?
-      // if( createTransition )
-      if( !isFollowState )
-      {
-        auto pFollowState = std::make_shared< Fsm::StateFollowTarget >( targetId );
-        auto pTransitionBack = std::make_shared< Fsm::Transition >( pCurrState, std::make_shared< Fsm::FollowTargetReachedCondition >() );
-
-        // transition back to current state on reaching target
-        pFollowState->addTransition( pTransitionBack );
-
-        // leash if too far from spawnpoint
-        // todo: dont leash if pet or in quest battle/fate/dungeon
-        pTransitionBack = std::make_shared< Fsm::Transition >( pCurrState, std::make_shared< Fsm::SpawnPointDistanceGtMaxDistanceCondition >() );
-        pFollowState->addTransition( pTransitionBack );
-
-        m_stateMachine.setCurrentState( pFollowState );
-      }
-    }
   }
 
   void Controller::processGambits( uint64_t tick )
@@ -247,10 +201,6 @@ namespace Sapphire::World::AI
     auto elapsed = Common::Util::getTimeMs() - m_lastTick;
 
     m_stateMachine.update( tick );
-
-    if( m_pOwner->getFollowTargetId() != Common::INVALID_GAME_OBJECT_ID )
-      followTarget( m_pOwner->getFollowTargetId(), true );
-    
     m_lastTick = Common::Util::getTimeMs();
   }
 

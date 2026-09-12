@@ -26,39 +26,31 @@ void AI::Fsm::StateMachine::setCurrentState( Fsm::StatePtr state )
 
 void AI::Fsm::StateMachine::update( uint64_t tickCount )
 {
-  auto& pCurrentState = m_pCurrentState;
-
-  // todo: support forcing new state, then resuming old one (e.g. follow scripted path during combat, reach dest, transition back to combat)
-  /*
-  if( !m_stateStack.empty() )
-  {
-    pCurrentState = m_stateStack.front();
-    m_stateStack.pop_front();
-  }
-  //*/
-  if( !pCurrentState )
+  if( !m_pCurrentState )
     return;
 
   // make sure we run at least once
-  if( !pCurrentState->hasInitialised() )
+  if( !m_pCurrentState->hasInitialised() )
   {
-    pCurrentState->onEnter( m_pOwner );
-    pCurrentState->setInitialised( true );
+    m_pCurrentState->onEnter( m_pOwner );
+    m_pCurrentState->setInitialised( true );
   }
 
-  pCurrentState->onUpdate( m_pOwner, tickCount );
+  m_pCurrentState->onUpdate( m_pOwner, tickCount );
 
-  TransitionPtr transition = pCurrentState->getTriggeredTransition( m_pOwner );
+  TransitionPtr transition = m_pCurrentState->getTriggeredTransition( m_pOwner );
+  volatile TransitionPtr pTransition2 = transition;
 
   if( transition )
   {
-    pCurrentState->onExit( m_pOwner );
-    pCurrentState->setInitialised( false );
+    m_pCurrentState->onExit( m_pOwner );
+    m_pCurrentState->setInitialised( false );
 
-    pCurrentState = transition->getTargetState();
+    m_pPrevState = m_pCurrentState;
+    m_pCurrentState = transition->getTargetState();
 
-    pCurrentState->onEnter( m_pOwner );
-    pCurrentState->onUpdate( m_pOwner, tickCount );
-
+    m_pCurrentState->onEnter( m_pOwner );
+    m_pCurrentState->setInitialised( true );
+    m_pCurrentState->onUpdate( m_pOwner, tickCount );
   }
 }

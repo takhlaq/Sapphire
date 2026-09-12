@@ -40,11 +40,16 @@ namespace Sapphire::World::AI::Fsm
       return m_pCurrentState && dynamic_cast< T* >( m_pCurrentState.get() );
     }
 
+    const StatePtr getPrevState() const
+    {
+      return m_pPrevState;
+    }
+
   protected:
     std::deque< StatePtr > m_stateStack;
     Entity::GameObjectPtr m_pOwner;
     std::vector< StatePtr > m_states;
-    StatePtr m_pRestoreState;
+    StatePtr m_pPrevState;
     StatePtr m_pCurrentState;
   };
 }
