@@ -11,7 +11,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   enum class TimepointDataType : uint32_t
   {

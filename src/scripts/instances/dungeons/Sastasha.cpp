@@ -17,6 +17,7 @@
 using namespace Sapphire;
 using namespace Sapphire::Network::Packets;
 using namespace Sapphire::Network::Packets::WorldPackets;
+using namespace Sapphire::World::Encounter;
 
 class Sastasha :
   public Sapphire::ScriptAPI::InstanceContentScript

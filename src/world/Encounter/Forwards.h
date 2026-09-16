@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   class Selector;
   class TimelineActor;
@@ -24,5 +24,11 @@ namespace Sapphire
   class TimelinePack;
 
   using EncounterPtr = std::shared_ptr< Encounter >;
+  using TimelinePackPtr = std::shared_ptr< TimelinePack >;
 
+  namespace Mechanic
+  {
+    class Mechanic;
+    using MechanicPtr = std::shared_ptr< Mechanic >;
+  }// namespace Mechanic
 }

@@ -34,7 +34,7 @@
 
 #include <filesystem>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   //
   // parsing stuff below

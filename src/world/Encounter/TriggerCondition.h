@@ -10,7 +10,7 @@
 #include "TimelineActorState.h"
 #include "Timepoint.h"
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   // todo: just use the actual combat state return type
   enum class CombatStateType

@@ -11,6 +11,11 @@ using namespace Sapphire::World;
 
 void AI::Fsm::StateRetreat::onUpdate( Entity::GameObjectPtr& pEntity, uint64_t tickCount )
 {
+  auto elapsed = tickCount - m_lastTick;
+
+  if( elapsed < 2500 )
+    return;
+
   if( auto pBNpc = pEntity->getAsBNpc() )
   {
     auto& bnpc = *pBNpc;
@@ -23,6 +28,7 @@ void AI::Fsm::StateRetreat::onUpdate( Entity::GameObjectPtr& pEntity, uint64_t t
     if( bnpc.getHpPercent() < 100 )
       bnpc.heal( bnpc.getMaxHp() / 10.f );
   }
+  m_lastTick = tickCount;
 }
 
 void AI::Fsm::StateRetreat::onEnter( Entity::GameObjectPtr& pEntity )

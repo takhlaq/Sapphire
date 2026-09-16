@@ -108,7 +108,8 @@ namespace Sapphire::World::AI
     stateFollowTarget->addTransition( make_Transition( stateCombat, make_HateListHasEntriesCondition() ) );
     stateFollowTarget->addTransition( make_Transition( m_stateMachine.getCurrentState(), std::make_shared< Fsm::FollowTargetInvalidCondition >() ) );
     stateFollowTarget->addTransition( make_Transition( m_stateMachine.getCurrentState(), make_SpawnPointDistanceGtMaxDistanceCondition() ) );
-    
+    stateCombat->addTransition( stateFollowTarget, make_HateListEmptyCondition() );
+
     m_stateMachine.getCurrentState()->addTransition( stateFollowTarget, std::make_shared< Fsm::ShouldFollowTargetOutOfCombatCondition >() );
   }
 

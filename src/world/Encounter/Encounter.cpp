@@ -20,9 +20,9 @@
 #include <fstream>
 #include <filesystem>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
-  Encounter::Encounter( TerritoryPtr pInstance, std::shared_ptr< Event::Director > pDirector,
+  Encounter::Encounter( TerritoryPtr pInstance, Event::DirectorPtr pDirector,
                         const std::string& timelineName ) :
     m_pTeri( pInstance ),
     m_pDirector( pDirector ),

@@ -14,7 +14,7 @@
 
 #include <Territory/Territory.h>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   void TimelineActor::addPhase( PhasePtr pPhase )
   {

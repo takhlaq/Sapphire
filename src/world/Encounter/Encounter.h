@@ -3,15 +3,15 @@
 #include <memory>
 #include <set>
 #include <stack>
-#include <Territory/InstanceContent.h>
-#include <Logging/Logger.h>
+
 #include <Actor/BNpc.h>
 #include <Encounter/Forwards.h>
 
-#include "Network/PacketDef/ServerIpcs.h"
+#include <Logging/Logger.h>
 
+#include <Territory/InstanceContent.h>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   enum class EncounterStatus
   {
