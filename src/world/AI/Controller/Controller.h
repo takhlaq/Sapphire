@@ -13,7 +13,7 @@
 
 namespace Sapphire::World::AI
 {
-  class Controller : public std::enable_shared_from_this< Controller >
+  class Controller
   {
   public:
     enum class PathType : uint32_t
@@ -66,11 +66,16 @@ namespace Sapphire::World::AI
       }
     };
 
-    Controller( Entity::GameObjectPtr pEntity ) : m_pOwner( pEntity ),
-                                                  m_lastTick( Common::Util::getTimeMs() ),
-                                                  m_stateMachine( pEntity )
+    explicit Controller( Entity::GameObject& owner ) : m_lastTick( Common::Util::getTimeMs() ),
+                                                       m_stateMachine( owner ),
+                                                       m_owner( owner )
     {
     }
+
+    virtual ~Controller() = default;
+
+    virtual void initialize();
+    virtual void onDetach();
 
     virtual bool tryAggro( uint32_t targetId );
     virtual void aggro( uint32_t targetId, uint32_t hateAmount = 1 );
@@ -81,6 +86,7 @@ namespace Sapphire::World::AI
     virtual void pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} );
     virtual void followPath( const std::vector< Common::Vector3 >& path, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} );
     virtual void followTarget( uint32_t targetId, bool followDuringCombat = false );
+    virtual void stopFollowingTarget();
 
     // todo: process gambits here instead of through BNpc::processGambit in StateCombat?
     virtual void processGambits( uint64_t tick );
@@ -102,12 +108,14 @@ namespace Sapphire::World::AI
     }
 
   protected:
+    void updateFollowTarget( uint64_t tick );
+
     uint64_t m_lastTick;
     Fsm::StateMachine m_stateMachine;
     GambitPackPtr m_pGambitPack;
-    Entity::GameObjectPtr m_pOwner;
+    Entity::GameObject& m_owner;
     Controller::Path m_path;
+    bool m_followTargetActive{ false };
+    bool m_followTargetDuringCombat{ false };
   };
-
-  using ControllerPtr = std::shared_ptr< Controller >;
 };

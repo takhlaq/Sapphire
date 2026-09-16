@@ -807,7 +807,7 @@ namespace Sapphire::World::Encounter
 
     if( f.good() )
     {
-      json << f;
+      f >> json;
       f.close();
     }
     else

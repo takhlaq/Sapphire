@@ -8,7 +8,7 @@
 #include "Npc.h"
 #include <map>
 #include <queue>
-#include <set>
+#include <unordered_map>
 
 namespace Sapphire::Entity
 {
@@ -18,6 +18,7 @@ namespace Sapphire::Entity
     CharaPtr m_pChara;
   };
   using HateListEntryPtr = std::shared_ptr< HateListEntry >;
+  using HateList = std::unordered_map< uint32_t, HateListEntryPtr >;
 
   enum class BNpcState
   {
@@ -75,6 +76,10 @@ namespace Sapphire::Entity
 
     void init();
 
+    World::AI::Controller* getController() override;
+    bool setController( World::AI::ControllerUPtr pController );
+    void detachController();
+
     void spawn( PlayerPtr pTarget ) override;
     void despawn( PlayerPtr pTarget ) override;
 
@@ -115,7 +120,7 @@ namespace Sapphire::Entity
 
     float getCurrentSpeed() const;
 
-    const std::set< std::shared_ptr< HateListEntry > >& getHateList() const;
+    const HateList& getHateList() const;
     void hateListClear();
     uint32_t hateListGetValue( const Sapphire::Entity::CharaPtr& pChara );
     uint32_t hateListGetHighestValue();
@@ -241,7 +246,7 @@ namespace Sapphire::Entity
     uint64_t m_lastPosUpdate{0};
 
     BNpcState m_state;
-    std::set< std::shared_ptr< HateListEntry > > m_hateList;
+    HateList m_hateList;
     bool m_canSwapTarget{ true };
 
     uint64_t m_naviLastUpdate;
@@ -251,6 +256,9 @@ namespace Sapphire::Entity
 
     CharaPtr m_pOwner;
     World::AI::GambitPackPtr m_pGambitPack;
+
+    World::AI::ControllerUPtr m_pController;
+    bool m_controllerInitialized{ false };
 
     std::shared_ptr< World::AI::Fsm::StateMachine > m_fsm;
   };

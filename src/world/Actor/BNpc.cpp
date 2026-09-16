@@ -309,7 +309,33 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   calculateStats();
 }
 
-BNpc::~BNpc() = default;
+BNpc::~BNpc()
+{
+  detachController();
+}
+
+World::AI::Controller* BNpc::getController()
+{
+  return m_pController.get();
+}
+
+bool BNpc::setController( World::AI::ControllerUPtr pController )
+{
+  if( m_controllerInitialized || !pController )
+    return false;
+
+  m_pController = std::move( pController );
+  return true;
+}
+
+void BNpc::detachController()
+{
+  if( m_pController && m_controllerInitialized )
+    m_pController->onDetach();
+
+  m_controllerInitialized = false;
+  m_pController.reset();
+}
 
 uint8_t BNpc::getAggressionMode() const
 {
@@ -509,7 +535,7 @@ void BNpc::sendPositionUpdate( uint64_t tickCount )
   m_lastRot = m_rot;
 }
 
-const std::set< std::shared_ptr< HateListEntry > >& BNpc::getHateList() const
+const Sapphire::Entity::HateList& BNpc::getHateList() const
 {
   return m_hateList;
 }
@@ -519,8 +545,10 @@ void BNpc::hateListClear()
   Network::Util::Packet::sendActorControl( getInRangePlayerIds(), getId(), ToggleWeapon, 0, 1, 1 );
   Network::Util::Packet::sendActorControl( getInRangePlayerIds(), getId(), SetBattle );
 
-  for( auto& listEntry : m_hateList )
+  for( const auto& hatePair : m_hateList )
   {
+    const auto& listEntry = hatePair.second;
+
     if( isInRangeSet( listEntry->m_pChara ) )
     {
       if( listEntry->m_pChara->isPlayer() )
@@ -532,28 +560,24 @@ void BNpc::hateListClear()
 
 uint32_t BNpc::hateListGetValue( const Sapphire::Entity::CharaPtr& pChara )
 {
-  for( const auto& listEntry : m_hateList )
-  {
-    if( listEntry->m_pChara == pChara )
-    {
-      return listEntry->m_hateAmount;
-    }
-  }
+  auto pos = m_hateList.find( pChara->getId() );
+  if( pos != m_hateList.end() )
+    return pos->second->m_hateAmount;
 
   return 0;
 }
 
 uint32_t BNpc::hateListGetHighestValue()
 {
-  auto it = m_hateList.begin();
   uint32_t maxHate = 0;
-  std::shared_ptr< HateListEntry > entry;
-  for( ; it != m_hateList.end(); ++it )
+  HateListEntryPtr entry;
+  for( const auto& hatePair : m_hateList )
   {
-    if( ( *it )->m_hateAmount > maxHate )
+    const auto& listEntry = hatePair.second;
+    if( listEntry->m_hateAmount > maxHate )
     {
-      maxHate = ( *it )->m_hateAmount;
-      entry = *it;
+      maxHate = listEntry->m_hateAmount;
+      entry = listEntry;
     }
   }
 
@@ -565,15 +589,15 @@ uint32_t BNpc::hateListGetHighestValue()
 
 CharaPtr BNpc::hateListGetHighest()
 {
-  auto it = m_hateList.begin();
   uint32_t maxHate = 0;
-  std::shared_ptr< HateListEntry > entry;
-  for( ; it != m_hateList.end(); ++it )
+  HateListEntryPtr entry;
+  for( const auto& hatePair : m_hateList )
   {
-    if( ( *it )->m_hateAmount > maxHate )
+    const auto& listEntry = hatePair.second;
+    if( listEntry->m_hateAmount > maxHate )
     {
-      maxHate = ( *it )->m_hateAmount;
-      entry = *it;
+      maxHate = listEntry->m_hateAmount;
+      entry = listEntry;
     }
   }
 
@@ -585,13 +609,23 @@ CharaPtr BNpc::hateListGetHighest()
 
 void BNpc::hateListAdd( const CharaPtr& pChara, int32_t hateAmount )
 {
+  if( !isAlive() )
+    return;
+
   if( hateAmount > 0 )
   {
+    auto pos = m_hateList.find( pChara->getId() );
+    if( pos != m_hateList.end() )
+    {
+      hateListUpdate( pChara, hateAmount );
+      return;
+    }
+
     auto hateEntry = std::make_shared< HateListEntry >();
     hateEntry->m_hateAmount = hateAmount;
     hateEntry->m_pChara = pChara;
 
-    m_hateList.insert( hateEntry );
+    m_hateList.emplace( pChara->getId(), hateEntry );
     if( pChara->isPlayer() )
     {
       auto pPlayer = pChara->getAsPlayer();
@@ -604,6 +638,9 @@ void BNpc::hateListAdd( const CharaPtr& pChara, int32_t hateAmount )
 
 void BNpc::hateListAddDelayed( const CharaPtr& pChara, int32_t hateAmount )
 {
+  if( !isAlive() )
+    return;
+
   auto& taskMgr = Common::Service< World::Manager::TaskMgr >::ref();
   auto delayedEmnityTask = std::make_shared< World::DelayedEmnityTask >( 5000, getAsBNpc(), pChara, hateAmount );
   taskMgr.queueTask( delayedEmnityTask );
@@ -611,30 +648,27 @@ void BNpc::hateListAddDelayed( const CharaPtr& pChara, int32_t hateAmount )
 
 void BNpc::hateListUpdate( const CharaPtr& pChara, int32_t hateAmount )
 {
-  bool hasEntry = false;
+  if( !isAlive() )
+    return;
 
-  for( const auto& listEntry : m_hateList )
+  auto pos = m_hateList.find( pChara->getId() );
+  if( pos != m_hateList.end() )
   {
-    if( listEntry->m_pChara == pChara )
-    {
-      auto currentHate = listEntry->m_hateAmount;
-      if( hateAmount >= 0 || currentHate > abs( hateAmount ) )
-        listEntry->m_hateAmount += hateAmount;
-      else
-        listEntry->m_hateAmount = 0;
-      hasEntry = true;
+    auto& listEntry = pos->second;
+    auto currentHate = listEntry->m_hateAmount;
+    if( hateAmount >= 0 || currentHate > abs( hateAmount ) )
+      listEntry->m_hateAmount += hateAmount;
+    else
+      listEntry->m_hateAmount = 0;
 
-      if( auto player = pChara->getAsPlayer() )
-      {
-        player->hateListLetterUpdate( *this );
-        World::Manager::PlayerMgr::sendDebug( *player, "New Aggro: {}, Aggro gained: {}", listEntry->m_hateAmount,
-                                              hateAmount );
-      }
-      break;
+    if( auto player = pChara->getAsPlayer() )
+    {
+      player->hateListLetterUpdate( *this );
+      World::Manager::PlayerMgr::sendDebug( *player, "New Aggro: {}, Aggro gained: {}", listEntry->m_hateAmount,
+                                            hateAmount );
     }
   }
-
-  if( !hasEntry )
+  else
   {
     hateListAdd( pChara, hateAmount );
   }
@@ -644,19 +678,16 @@ void BNpc::hateListUpdate( const CharaPtr& pChara, int32_t hateAmount )
 
 void BNpc::hateListRemove( const CharaPtr& pChara )
 {
-  for( const auto& listEntry : m_hateList )
-  {
-    if( listEntry->m_pChara == pChara )
-    {
-      m_hateList.erase( listEntry );
+  auto pos = m_hateList.find( pChara->getId() );
+  if( pos == m_hateList.end() )
+    return;
 
-      if( pChara->isPlayer() )
-      {
-        PlayerPtr tmpPlayer = pChara->getAsPlayer();
-        tmpPlayer->onMobDeaggro( *this );
-      }
-      return;
-    }
+  m_hateList.erase( pos );
+
+  if( pChara->isPlayer() )
+  {
+    PlayerPtr tmpPlayer = pChara->getAsPlayer();
+    tmpPlayer->onMobDeaggro( *this );
   }
 }
 
@@ -672,16 +703,16 @@ void BNpc::setTriggerOwnerId( uint32_t triggerOwnerId )
 
 bool BNpc::hateListHasActor( const Sapphire::Entity::CharaPtr& pChara )
 {
-  return std::any_of( m_hateList.begin(), m_hateList.end(),
-                      [ pChara ]( const auto& entry ) { return entry->m_pChara == pChara; } );
+  return m_hateList.find( pChara->getId() ) != m_hateList.end();
 }
 
 std::vector< CharaPtr > BNpc::getHateList()
 {
   std::vector< CharaPtr > hateList = {};
 
-  for( auto& entry : m_hateList )
+  for( const auto& hatePair : m_hateList )
   {
+    const auto& entry = hatePair.second;
     hateList.push_back( entry->m_pChara );
   }
 
@@ -690,8 +721,9 @@ std::vector< CharaPtr > BNpc::getHateList()
 
 void BNpc::hateListUpdatePlayers()
 {
-  for( const auto& listEntry : m_hateList )
+  for( const auto& hatePair : m_hateList )
   {
+    const auto& listEntry = hatePair.second;
     // update entire hatelist for all players who are on aggro with this bnpc
     if( listEntry->m_pChara->isPlayer() )
     {
@@ -703,6 +735,9 @@ void BNpc::hateListUpdatePlayers()
 
 void BNpc::aggro( const Sapphire::Entity::CharaPtr& pChara )
 {
+  if( !isAlive() )
+    return;
+
   auto& pRNGMgr = Common::Service< Common::Random::RNGMgr >::ref();
   auto variation = static_cast< uint32_t >( pRNGMgr.getRandGenerator< float >( 500, 1000 ).next() );
 
@@ -812,6 +847,9 @@ void BNpc::restHp()
 
 void BNpc::onActionHostile( CharaPtr pSource, int32_t aggro )
 {
+  if( !isAlive() )
+    return;
+
   hateListUpdate( pSource, aggro );
 
   if( getCanSwapTarget() )// todo: only call on global server tick
@@ -840,8 +878,9 @@ void BNpc::onDeath()
   auto& exdData = Common::Service< Data::ExdData >::ref();
   auto paramGrowthInfo = exdData.getRow< Excel::ParamGrow >( m_level );
 
-  for( const auto& pHateEntry : m_hateList )
+  for( const auto& hatePair : m_hateList )
   {
+    const auto& pHateEntry = hatePair.second;
     auto pPlayer = pHateEntry->m_pChara->getAsPlayer();
     if( pPlayer )
     {
@@ -870,6 +909,9 @@ void BNpc::setTimeOfDeath( uint32_t timeOfDeath )
 
 void BNpc::checkAggro()
 {
+  if( !isAlive() )
+    return;
+
   // passive mobs should ignore players unless aggro'd
   if( m_aggressionMode == 1 )
     return;
@@ -1326,8 +1368,12 @@ void BNpc::init()
   gambitPack->addTimeLine( AI::make_TopHateTargetCondition(), Action::make_Action( getAsChara(), 82, 0 ), 14 );
   m_pGambitPack = gambitPack;
   */
-  m_pController = std::make_shared< AI::BNpcOverworldController >( shared_from_this() );
+  if( !m_pController )
+    m_pController = std::make_unique< AI::BNpcOverworldController >( *this );
+
   m_pController->setGambitPack( pGambitPack );
+  m_pController->initialize();
+  m_controllerInitialized = true;
 }
 
 void BNpc::initFsm()

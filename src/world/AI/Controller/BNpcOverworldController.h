@@ -7,8 +7,9 @@ namespace Sapphire::World::AI
   class BNpcOverworldController : public Controller
   {
   public:
-    BNpcOverworldController( Entity::GameObjectPtr pEntity );
+    explicit BNpcOverworldController( Entity::BNpc& bnpc );
 
+    void initialize() override;
 
     bool tryAggro( uint32_t targetId ) override;
     void aggro( uint32_t targetId, uint32_t hateAmount = 1 ) override;
@@ -21,10 +22,5 @@ namespace Sapphire::World::AI
     void followTarget( uint32_t targetId, bool followDuringCombat = false ) override;
 
     void update( uint64_t tick ) override;
-
-  private:
-    Entity::BNpcPtr m_pBNpc;
   };
-
-  using BNpcOverworldControllerPtr = std::shared_ptr< BNpcOverworldController >;
 }
