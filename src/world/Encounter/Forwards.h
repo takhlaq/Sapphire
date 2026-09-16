@@ -30,5 +30,8 @@ namespace Sapphire::World::Encounter
   {
     class Mechanic;
     using MechanicPtr = std::shared_ptr< Mechanic >;
+
+    struct MechanicArg;
+    using MechanicArgPtr = std::shared_ptr< MechanicArg >;
   }// namespace Mechanic
 }

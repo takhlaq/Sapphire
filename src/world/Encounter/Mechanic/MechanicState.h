@@ -1,8 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include <nlohmann/json.hpp>
 
 namespace Sapphire::World::Encounter::Mechanic
 {
@@ -13,55 +16,6 @@ namespace Sapphire::World::Encounter::Mechanic
     Interrupted,
     Complete
   };
-  
-  // todo: support vectors instead of one type per arg?
-  enum class MechanicArgType : uint32_t
-  {
-    None,
-    UInt64,
-    Int64,
-    Float,
-    String
-  };
-
-  struct MechanicArg
-  {
-    void setUInt( uint64_t val )
-    {
-      m_type = MechanicArgType::UInt64;
-      m_paramUInt = val;
-    }
-
-    void setInt( int64_t val )
-    {
-      m_type = MechanicArgType::Int64;
-      m_paramInt = val;
-    }
-
-    void setFloat( float val )
-    {
-      m_type = MechanicArgType::Float;
-      m_paramFloat = val;
-    }
-
-    void setString( const std::string& val )
-    {
-      m_type = MechanicArgType::String;
-      m_paramStr = val;
-    }
-
-    MechanicArgType getType() const
-    {
-      return m_type;
-    }
-
-  protected:
-    MechanicArgType m_type{ MechanicArgType::None };
-    uint64_t m_paramUInt{ 0 };
-    int64_t m_paramInt{ 0 };
-    float m_paramFloat{ 0 };
-    std::string m_paramStr;
-  };
 
   class MechanicState
   {
@@ -69,9 +23,8 @@ namespace Sapphire::World::Encounter::Mechanic
     MechanicState() {}
     ~MechanicState() {}
 
-    void arm( const std::vector< MechanicArg >& args )
+    void arm()
     {
-      m_args = args;
       m_status = MechanicStatus::Armed;
       m_startTime = Common::Util::getTimeMs();
     }
@@ -100,11 +53,6 @@ namespace Sapphire::World::Encounter::Mechanic
     void setLastTick( uint64_t tick )
     {
       m_lastTick = tick;
-    }
-
-    std::vector< MechanicArg >& getArgs()
-    {
-      return m_args;
     }
 
     MechanicStatus getStatus() const
@@ -138,6 +86,5 @@ namespace Sapphire::World::Encounter::Mechanic
     uint64_t m_lastTick{ 0 };
     uint64_t m_interruptTime{ 0 };
     uint64_t m_completeTime{ 0 };
-    std::vector< MechanicArg > m_args;
   };
 };
