@@ -15,7 +15,7 @@
 #include <Territory/InstanceContent.h>
 #include <Territory/QuestBattle.h>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   bool ConditionHp::isConditionMet( PhaseState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
   {

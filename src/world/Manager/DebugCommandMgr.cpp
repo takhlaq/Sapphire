@@ -31,6 +31,8 @@
 #include "Actor/EventObject.h"
 #include "Actor/BNpc.h"
 
+#include "AI/Controller/Controller.h"
+
 #include "Action/Action.h"
 #include "Action/ActionLutData.h"
 #include "Action/ActionShapeLutData.h"
@@ -694,6 +696,55 @@ void DebugCommandMgr::add( char* data, Entity::Player& player, std::shared_ptr< 
       else if( paramCount == 2 )
         pNavi->toggleObstacle( obstacleRef, player.getPos(), radius, height, true );
     }
+  }
+  else if( subCommand == "path" )
+  {
+    char targetStr[ 20 ] = { 0 };
+    int paramCount = sscanf( params.c_str(), "%19s", &targetStr[0] );
+
+    auto pTeri = terriMgr.getTerritoryByGuId( player.getTerritoryId() );
+
+    if( !pTeri )
+      return;
+
+    auto pNavi = pTeri->getNaviProvider();
+    if( !pNavi )
+      return;
+
+    if( player.getTargetId() == Common::INVALID_GAME_OBJECT_ID )
+      return;
+
+    auto pTarget = pTeri->getEntityById( player.getTargetId() );
+    if( !pTarget )
+      return;
+
+    auto pBNpc = pTarget->getAsBNpc();
+    if( !pBNpc )
+      return;
+
+    auto p1 = Common::Util::getOffsettedPosition( pBNpc->getPos(), pBNpc->getRot(), 10.f, 1.f, 10.f );
+    //p1 = pNavi->findNearestPosition( p1.x, p1.y, p1.z );
+
+    auto p2 = Common::Util::getOffsettedPosition( pBNpc->getPos(), pBNpc->getRot(), 0.f, 1.f, 10.f );
+    //p2 = pNavi->findNearestPosition( p2.x, p2.y, p2.z );
+
+    auto p3 = Common::Util::getOffsettedPosition( pBNpc->getPos(), pBNpc->getRot(), 10.f, 1.f, 0.f );
+    //p3 = pNavi->findNearestPosition( p3.x, p3.y, p3.z );
+
+    std::vector< Common::Vector3 > points = { p1, p2, p3, p1 };
+
+    for( const auto& p : points )
+      Logger::info( "{} {} {}", p.x, p.y, p.z );
+
+    auto pointCb = [ &player ]( Common::Vector3 pos ) { PlayerMgr::sendDebug( player, "Reached point on path" ); };
+    auto destCb = [ &player ]() { PlayerMgr::sendDebug( player, "Reached end of path" ); };
+
+    if( targetStr[ 0 ] == 'm' && targetStr[ 1 ] == 'p' )
+      pBNpc->getController()->pathTo( player.getPos(), AI::Controller::PathFlags::None, pointCb, destCb );
+    else if( targetStr[ 0 ] == 't' && targetStr[ 1 ] == 'g' )
+      pBNpc->getController()->followTarget( player.getId() );
+    else
+      pBNpc->getController()->followPath( points, AI::Controller::PathFlags::CanReversePath, pointCb, destCb );
   }
 }
 

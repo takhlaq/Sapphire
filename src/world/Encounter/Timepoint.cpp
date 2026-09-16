@@ -26,7 +26,7 @@
 #include <Network/CommonActorControl.h>
 #include <Network/Util/PacketUtil.h>
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   const TimepointDataPtr Timepoint::getData() const
   {

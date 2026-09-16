@@ -21,7 +21,7 @@
 #include "Selector.h"
 #include "Forwards.h"
 
-namespace Sapphire
+namespace Sapphire::World::Encounter
 {
   enum class TimelinePackType : uint32_t
   {
@@ -42,6 +42,9 @@ namespace Sapphire
     uint64_t m_startTime{ 0 };
     std::shared_ptr< Encounter > m_pEncounter;
     std::map< uint32_t, uint64_t > m_vars;
+
+    // todo: mechanic set/arm/interrupt/complete
+    Mechanic::MechanicPtr m_pMechanic;
 
   public:
     TimelinePack() {}
@@ -95,6 +98,8 @@ namespace Sapphire
     uint32_t getVar( uint32_t index ) const;
 
     void setVar( uint32_t index, uint32_t val );
+
+    // todo: mechanic set/arm/interrupt/complete
 
     static TimeLinePackPtr createTimelinePack( const std::string& name );
   };

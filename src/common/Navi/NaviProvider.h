@@ -13,7 +13,7 @@
 
 namespace Sapphire::Common::Navi
 {
-  const int32_t MAX_POLYS = 32;
+  const int32_t MAX_POLYS = 512;
   const int32_t MAX_SMOOTH = 2048;
 
   /** 1. Memory Allocator for Tile Cache **/
@@ -106,11 +106,13 @@ namespace Sapphire::Common::Navi
     Common::Vector3 toGamePos( float* pos );
 
     std::vector< Common::Vector3 > findFollowPath( const Common::Vector3& startPos,
-                                                              const Common::Vector3& endPos );
+                                                              const Common::Vector3& endPos, float radius = 1.f );
     Common::Vector3 findRandomPositionInCircle( const Common::Vector3& startPos,
                                                            float maxRadius );
 
     Common::Vector3 findNearestPosition( float x, float z );
+
+    Common::Vector3 findNearestPosition( float x, float y, float z );
 
     bool hasNaviMesh() const;
 

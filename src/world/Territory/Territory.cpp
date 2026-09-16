@@ -172,9 +172,10 @@ Territory::Territory( uint16_t territoryTypeId, uint32_t guId, const std::string
   m_ident.territoryTypeId = territoryTypeId;
   loadWeatherRates();
 
+  loadServerPaths();
+
   loadBNpcs();
 
-  loadServerPaths();
 
   m_currentWeather = getNextWeather();
 }

@@ -4,6 +4,7 @@
 #include <Actor/Player.h>
 
 using namespace Sapphire;
+using namespace Sapphire::World::Encounter;
 
 class TheBowlofEmbers : public Sapphire::ScriptAPI::InstanceContentScript
 {
@@ -14,7 +15,7 @@ public:
   TheBowlofEmbers() : Sapphire::ScriptAPI::InstanceContentScript( 20001 )
   {}
 
-  void setupEncounter( InstanceContent& instance, EncounterPtr pEncounter )
+  void setupEncounter( InstanceContent& instance, World::Encounter::EncounterPtr pEncounter )
   {
     EncounterSetup setup;
     setup.timelineName = "trials/IfritNormal";
@@ -34,7 +35,7 @@ public:
 
     auto instanceContent = instance.shared_from_this()->getAsInstanceContent();
     auto director = std::static_pointer_cast< Event::Director >( instanceContent );
-    auto pEncounter = std::make_shared< Encounter >( instanceContent, director, "trials/IfritNormal" );
+    auto pEncounter = std::make_shared< World::Encounter::Encounter >( instanceContent, director, "trials/IfritNormal" );
     setupEncounter( instance, pEncounter );
 
     instance.setEncounter( pEncounter );

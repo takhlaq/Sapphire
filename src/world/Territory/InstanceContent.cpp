@@ -840,12 +840,12 @@ std::set< uint32_t > Sapphire::InstanceContent::getSpawnedPlayerIds() const
   return m_spawnedPlayers;
 }
 
-void Sapphire::InstanceContent::setEncounter( Sapphire::EncounterPtr pEncounter )
+void Sapphire::InstanceContent::setEncounter( Sapphire::World::Encounter::EncounterPtr pEncounter )
 {
   m_pEncounter = pEncounter;
 }
 
-Sapphire::EncounterPtr Sapphire::InstanceContent::getEncounter()
+Sapphire::World::Encounter::EncounterPtr Sapphire::InstanceContent::getEncounter()
 {
   return m_pEncounter;
 }
