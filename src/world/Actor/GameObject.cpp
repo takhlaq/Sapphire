@@ -410,14 +410,9 @@ void GameObject::setCellId( CellId cellId )
   m_cellId = cellId;
 }
 
-Sapphire::World::AI::ControllerPtr GameObject::getController()
+Sapphire::World::AI::Controller* GameObject::getController()
 {
-  return m_pController;
-}
-
-void GameObject::setController( Sapphire::World::AI::ControllerPtr pController )
-{
-  m_pController = pController;
+  return nullptr;
 }
 
 uint32_t GameObject::getFollowTargetId() const

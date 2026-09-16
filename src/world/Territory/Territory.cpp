@@ -424,8 +424,15 @@ void Territory::removeActor( const Entity::GameObjectPtr& pActor )
   }
   else if( pActor->isBattleNpc() )
   {
-    if( m_pNaviProvider )
-      m_pNaviProvider->removeAgent( pActor->getAsChara()->getAgentId() );
+    auto pBNpc = pActor->getAsBNpc();
+    pBNpc->detachController();
+
+    if( m_pNaviProvider && pBNpc->getAgentId() != -1 )
+      m_pNaviProvider->removeAgent( pBNpc->getAgentId() );
+
+    pBNpc->setAgentId( -1 );
+    pBNpc->setNaviIsPathing( false );
+    pBNpc->setPathingActive( false );
     m_bNpcMap.erase( pActor->getId() );
   }
   else if( pActor->isEventObj() )

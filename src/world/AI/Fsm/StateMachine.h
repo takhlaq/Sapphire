@@ -16,8 +16,8 @@ namespace Sapphire::World::AI::Fsm
   class StateMachine
   {
   public:
-    StateMachine( Entity::GameObjectPtr& pOwner ) :
-      m_pOwner( pOwner )
+    explicit StateMachine( Entity::GameObject& owner ) :
+      m_owner( owner )
     {
     }
     ~StateMachine() = default;
@@ -26,6 +26,7 @@ namespace Sapphire::World::AI::Fsm
 
     StatePtr getCurrentState();
     void setCurrentState( StatePtr state );
+    void reset();
 
     void forceChangeState( StatePtr pState )
     {
@@ -47,7 +48,7 @@ namespace Sapphire::World::AI::Fsm
 
   protected:
     std::deque< StatePtr > m_stateStack;
-    Entity::GameObjectPtr m_pOwner;
+    Entity::GameObject& m_owner;
     std::vector< StatePtr > m_states;
     StatePtr m_pPrevState;
     StatePtr m_pCurrentState;

@@ -76,6 +76,10 @@ namespace Sapphire::Entity
 
     void init();
 
+    World::AI::Controller* getController() override;
+    bool setController( World::AI::ControllerUPtr pController );
+    void detachController();
+
     void spawn( PlayerPtr pTarget ) override;
     void despawn( PlayerPtr pTarget ) override;
 
@@ -252,6 +256,9 @@ namespace Sapphire::Entity
 
     CharaPtr m_pOwner;
     World::AI::GambitPackPtr m_pGambitPack;
+
+    World::AI::ControllerUPtr m_pController;
+    bool m_controllerInitialized{ false };
 
     std::shared_ptr< World::AI::Fsm::StateMachine > m_fsm;
   };

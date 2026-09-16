@@ -17,12 +17,13 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
 {
   auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
   auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
+  if( !pZone )
+    return;
+
   auto pNaviProvider = pZone->getNaviProvider();
 
   if( auto pController = pEntity->getController() )
   {
-    auto elapsed = Common::Util::getTimeMs() - m_lastTick;
-
     // todo: support pathing for non bnpc?
     auto pBNpc = pEntity->getAsBNpc();
 
@@ -30,15 +31,45 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
       return;
 
     auto& path = pController->getPath();
-    // dont spam path recalc
-    if( elapsed < 250 )
+    if( !path.m_active )
       return;
 
-    if( !path.m_active )
+    const auto now = Common::Util::getTimeMs();
+    const auto elapsed = now - m_lastTick;
+    const bool ignoreNavmesh = path.m_flags & AI::Controller::PathFlags::IgnoreNavmesh;
+
+    // Navi target updates do not need to be requested every actor tick. Direct
+    // paths do, because the controller itself advances the actor position.
+    if( !ignoreNavmesh && elapsed < 250 )
+      return;
+
+    if( pBNpc->hasFlag( Entity::NoRoam ) || pBNpc->hasFlag( Entity::Immobile ) || !pBNpc->pathingActive() )
     {
-      //Logger::error( "Path is not active!" );
+      pBNpc->setRoamTargetReached( true );
       return;
     }
+
+    if( !ignoreNavmesh && ( !pNaviProvider || pBNpc->getAgentId() == -1 ) )
+      return;
+
+    const auto moveDirectly = [ & ]( const Common::Vector3& destination )
+    {
+      const auto currentPos = pBNpc->getPos();
+      const auto delta = destination - currentPos;
+      const auto distance = delta.length();
+      const auto step = pBNpc->getCurrentSpeed() * static_cast< float >( elapsed ) / 1000.f;
+
+      pBNpc->face( destination );
+      if( distance <= pBNpc->getNaviTargetReachedDistance() || step >= distance )
+      {
+        pBNpc->setPos( destination );
+        return true;
+      }
+
+      if( step > 0.f )
+        pBNpc->setPos( currentPos + delta.normalize() * step );
+      return false;
+    };
 
     Common::Vector3 targetPos = pBNpc->getPos();
 
@@ -53,96 +84,82 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
     if( path.m_type == AI::Controller::PathType::FixedPos )
       targetPos = path.m_targetPos;
 
+    bool reachedTarget = false;
     if( path.m_type == AI::Controller::PathType::TargetId || path.m_type == AI::Controller::PathType::FixedPos )
     {
-      if( pNaviProvider )
+      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
+      if( reachedTarget )
       {
-        auto points = pNaviProvider->findFollowPath( pBNpc->getPos(), targetPos );
-
-        auto distance = Common::Util::distance( pBNpc->getPos(), path.m_targetPos );
-
-        if( pBNpc->moveTo( targetPos ) )
+        path.m_active = false;
+        if( m_onDestReachCb )
           m_onDestReachCb();
-
-        // todo: on point reached cb?
       }
     }
     // follow predefined path
     else if( path.m_type == AI::Controller::PathType::PointList || path.m_type == AI::Controller::PathType::ServerPath )
     {
-      auto currPoint = path.m_currPointIndex;
-      auto pathSize = path.m_points.size();
+      const auto pathSize = path.m_points.size();
+      if( pathSize == 0 || path.m_currPointIndex >= pathSize )
+      {
+        path.m_active = false;
+        path.m_currPointIndex = static_cast< uint32_t >( pathSize );
+        return;
+      }
+
+      const auto currPoint = path.m_currPointIndex;
 
       Logger::info( "FollowPath: Pre-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
-
-      if( currPoint >= 0 && currPoint < pathSize )
-        targetPos = path.m_points[ currPoint ];
-      else if( currPoint >= pathSize && pathSize > 0 )
-        targetPos = path.m_points[ path.m_points.size() - 1 ];
-      else
-        targetPos = path.m_points[ 0 ];
+      targetPos = path.m_points[ currPoint ];
 
       Logger::info( "FollowPath: Post-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
-      auto currPos = pBNpc->getPos();
-
-      if( pBNpc->moveTo( targetPos ) )
+      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
+      if( reachedTarget )
       {
         Logger::info( "FollowPath: Arrived at pos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
         Logger::info( "FollowPath: currPoint {} pathSize {}", currPoint, pathSize );
 
-        if( currPoint <= pathSize && !path.m_isReversePath )
+        if( m_onPointReachCb && path.m_prevPointIndex != currPoint )
+          m_onPointReachCb( path.m_points[ currPoint ] );
+        path.m_prevPointIndex = currPoint;
+
+        if( !path.m_isReversePath )
         {
-          path.m_currPointIndex++;
-
-          Logger::info( "FollowPath: Advanced currPoint" );
-
-          if( path.m_flags & AI::Controller::PathFlags::CanReversePath && currPoint + 1 >= pathSize )
+          if( currPoint + 1 < pathSize )
+            path.m_currPointIndex = currPoint + 1;
+          else if( path.m_flags & AI::Controller::PathFlags::CanReversePath && pathSize > 1 )
           {
             path.m_isReversePath = true;
-            path.m_currPointIndex = pathSize - 1;
+            path.m_currPointIndex = static_cast< uint32_t >( pathSize - 2 );
             Logger::info( "FollowPath: Reversing path" );
           }
-
-          if( currPoint + 1 >= pathSize )
+          else
           {
-            m_onDestReachCb();
+            path.m_currPointIndex = static_cast< uint32_t >( pathSize );
+            path.m_active = false;
+            if( m_onDestReachCb )
+              m_onDestReachCb();
             Logger::info( "FollowPath: Reached destination" );
+            m_lastTick = now;
+            return;
           }
         }
-        else if( currPoint >= 0 && path.m_isReversePath )
-        {
+        else if( currPoint > 0 )
           path.m_currPointIndex = currPoint - 1;
-
-          if( currPoint - 1 <= 0 )
-          {
-            path.m_isReversePath = false;
-            path.m_currPointIndex = 0;
-          }
+        else
+        {
+          path.m_isReversePath = false;
+          path.m_currPointIndex = pathSize > 1 ? 1 : 0;
         }
+
         targetPos = path.m_points[ path.m_currPointIndex ];
-
-        if( currPoint < pathSize && path.m_prevPointIndex != currPoint )
-          m_onPointReachCb( path.m_points[ currPoint ] );
-
-        path.m_prevPointIndex = currPoint;
       }
     }
 
-    // dont move if immobile
-    if( pBNpc->hasFlag( Entity::NoRoam ) || pBNpc->hasFlag( Entity::Immobile ) || !pBNpc->pathingActive() )
-    {
-      pBNpc->setRoamTargetReached( true );
-      return;
-    }
-
-    // request follow path from navi
-    if( pNaviProvider )
-    {
-      // targetPos = pNaviProvider->findNearestPosition( targetPos.x, targetPos.z );
-      pBNpc->moveTo( targetPos );
+    if( !ignoreNavmesh && !reachedTarget )
       pNaviProvider->setMoveTarget( pBNpc->getAgentId(), targetPos );
-    }
+
     pBNpc->setRoamTargetPos( targetPos );
+    m_lastTick = now;
   }
 
   /*
@@ -210,16 +227,20 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
     }
   }
   //*/
-  m_lastTick = Common::Util::getTimeMs();
 }
 
 void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
 {
   auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
   auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
+  if( !pZone )
+    return;
+
   auto pNaviProvider = pZone->getNaviProvider();
 
   auto pController = pEntity->getController();
+  if( !pController )
+    return;
 
   if( m_initialPathType == static_cast< uint32_t >( Controller::PathType::None ) )
     m_initialPathType = static_cast< uint32_t >( pController->getPath().m_type );
@@ -234,7 +255,8 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
     bnpc.setPathingActive( true );
     bnpc.setRoamTargetPos( path.m_targetPos );
 
-    if( !pNaviProvider || bnpc.hasFlag( Entity::NoRoam ) || bnpc.hasFlag( Entity::Immobile ) )
+    const bool ignoreNavmesh = path.m_flags & Controller::PathFlags::IgnoreNavmesh;
+    if( ( !ignoreNavmesh && !pNaviProvider ) || bnpc.hasFlag( Entity::NoRoam ) || bnpc.hasFlag( Entity::Immobile ) )
     {
       bnpc.setRoamTargetReached( true );
       return;

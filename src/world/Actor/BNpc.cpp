@@ -309,7 +309,33 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   calculateStats();
 }
 
-BNpc::~BNpc() = default;
+BNpc::~BNpc()
+{
+  detachController();
+}
+
+World::AI::Controller* BNpc::getController()
+{
+  return m_pController.get();
+}
+
+bool BNpc::setController( World::AI::ControllerUPtr pController )
+{
+  if( m_controllerInitialized || !pController )
+    return false;
+
+  m_pController = std::move( pController );
+  return true;
+}
+
+void BNpc::detachController()
+{
+  if( m_pController && m_controllerInitialized )
+    m_pController->onDetach();
+
+  m_controllerInitialized = false;
+  m_pController.reset();
+}
 
 uint8_t BNpc::getAggressionMode() const
 {
@@ -1342,8 +1368,12 @@ void BNpc::init()
   gambitPack->addTimeLine( AI::make_TopHateTargetCondition(), Action::make_Action( getAsChara(), 82, 0 ), 14 );
   m_pGambitPack = gambitPack;
   */
-  m_pController = std::make_shared< AI::BNpcOverworldController >( shared_from_this() );
+  if( !m_pController )
+    m_pController = std::make_unique< AI::BNpcOverworldController >( *this );
+
   m_pController->setGambitPack( pGambitPack );
+  m_pController->initialize();
+  m_controllerInitialized = true;
 }
 
 void BNpc::initFsm()

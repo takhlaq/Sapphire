@@ -20,9 +20,24 @@
 #include <Territory/Territory.h>
 
 #include <Logging/Logger.h>
+#include <Util/UtilMath.h>
 
 namespace Sapphire::World::AI
 {
+
+  void Controller::initialize()
+  {
+    m_stateMachine.reset();
+    m_path.reset();
+    stopFollowingTarget();
+  }
+
+  void Controller::onDetach()
+  {
+    m_path.reset();
+    stopFollowingTarget();
+    m_stateMachine.reset();
+  }
 
   bool Controller::tryAggro( uint32_t targetId )
   {
@@ -52,7 +67,7 @@ namespace Sapphire::World::AI
   void Controller::pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
   {
     auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-    auto pTeri = teriMgr.getTerritoryByGuId( m_pOwner->getTerritoryId() );
+    auto pTeri = teriMgr.getTerritoryByGuId( m_owner.getTerritoryId() );
 
     if( !pTeri )
     {
@@ -61,7 +76,7 @@ namespace Sapphire::World::AI
     }
 
     auto pNavi = pTeri->getNaviProvider();
-    if( !pNavi )
+    if( !( flags & PathFlags::IgnoreNavmesh ) && !pNavi )
     {
       // todo:
       return;
@@ -72,7 +87,6 @@ namespace Sapphire::World::AI
     m_path.m_type = PathType::FixedPos;
     m_path.m_targetPos = pos;
     m_path.m_flags = flags;
-    m_path.m_points = pNavi->findFollowPath( m_pOwner->getPos(), pos );
     m_path.m_active = true;
 
     if( !( flags & PathFlags::IgnoreNavmesh ) )
@@ -102,7 +116,7 @@ namespace Sapphire::World::AI
       return;
 
     auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-    auto pTeri = teriMgr.getTerritoryByGuId( m_pOwner->getTerritoryId() );
+    auto pTeri = teriMgr.getTerritoryByGuId( m_owner.getTerritoryId() );
 
     if( !pTeri )
     {
@@ -111,7 +125,7 @@ namespace Sapphire::World::AI
     }
 
     auto pNavi = pTeri->getNaviProvider();
-    if( !pNavi )
+    if( !( flags & PathFlags::IgnoreNavmesh ) && !pNavi )
     {
       // todo:
       return;
@@ -125,9 +139,9 @@ namespace Sapphire::World::AI
     m_path.m_points = path;
     m_path.m_active = true;
 
-    Logger::info( "BNpc {} X:{} Y:{} Z:{}", m_pOwner->getId(), m_pOwner->getPos().x, m_pOwner->getPos().y, m_pOwner->getPos().z );
+    Logger::info( "BNpc {} X:{} Y:{} Z:{}", m_owner.getId(), m_owner.getPos().x, m_owner.getPos().y, m_owner.getPos().z );
 
-    float radius = m_pOwner->isBattleNpc() ? m_pOwner->getAsBNpc()->getRadius() : 1.f;
+    float radius = m_owner.isBattleNpc() ? m_owner.getAsBNpc()->getRadius() : 1.f;
 
     if( !( flags & PathFlags::IgnoreNavmesh ) )
     {
@@ -136,9 +150,12 @@ namespace Sapphire::World::AI
 
         Logger::info( "Pre-adjustment pos: X:{} Y:{} Z:{}", pos.x, pos.y, pos.z );
         auto pos2 = pNavi->findNearestPosition( pos.x, pos.y, pos.z );
-        auto path = pNavi->findFollowPath( m_pOwner->getPos(), pos, radius );
-        auto pos3 = path[ path.size() - 1 ];
-        Logger::info( "FindFollowPath {} {} {}", pos3.x, pos3.y, pos3.z );
+        auto calculatedPath = pNavi->findFollowPath( m_owner.getPos(), pos, radius );
+        if( !calculatedPath.empty() )
+        {
+          const auto& pathEnd = calculatedPath.back();
+          Logger::info( "FindFollowPath {} {} {}", pathEnd.x, pathEnd.y, pathEnd.z );
+        }
         Logger::info( "Post-adjustment pos: X:{} Y:{} Z:{}", pos2.x, pos2.y, pos2.z );
         pos = pos2;
       }
@@ -164,7 +181,67 @@ namespace Sapphire::World::AI
 
   void Controller::followTarget( uint32_t targetId, bool followDuringCombat )
   {
-    m_pOwner->setFollowTargetId( targetId );
+    m_owner.setFollowTargetId( targetId );
+    m_followTargetActive = targetId != Common::INVALID_GAME_OBJECT_ID;
+    m_followTargetDuringCombat = followDuringCombat;
+  }
+
+  void Controller::stopFollowingTarget()
+  {
+    m_owner.resetFollowTargetId();
+    m_followTargetActive = false;
+    m_followTargetDuringCombat = false;
+  }
+
+  void Controller::updateFollowTarget( uint64_t )
+  {
+    if( !m_followTargetActive )
+      return;
+
+    if( !m_followTargetDuringCombat && m_stateMachine.isCurrentState< Fsm::StateCombat >() )
+      return;
+
+    auto pBNpc = m_owner.getAsBNpc();
+    if( !pBNpc || !pBNpc->isAlive() )
+    {
+      stopFollowingTarget();
+      return;
+    }
+
+    auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
+    auto pTeri = teriMgr.getTerritoryByGuId( m_owner.getTerritoryId() );
+    if( !pTeri )
+    {
+      stopFollowingTarget();
+      return;
+    }
+
+    auto pTarget = pTeri->getEntityById( m_owner.getFollowTargetId() );
+    if( !pTarget )
+    {
+      stopFollowingTarget();
+      return;
+    }
+
+    auto pNavi = pTeri->getNaviProvider();
+    if( !pNavi || pBNpc->getAgentId() == -1 )
+      return;
+
+    const auto targetPos = Common::Util::getOffsettedPosition( pTarget->getPos(), pTarget->getRot(), 0.f, 0.f, -1.f );
+    pBNpc->setPathingActive( true );
+    pBNpc->setRoamTargetPos( targetPos );
+
+    if( pBNpc->moveTo( targetPos ) )
+    {
+      pBNpc->setNaviIsPathing( false );
+      pBNpc->setRoamTargetReached( true );
+      pBNpc->face( pTarget->getPos() );
+      return;
+    }
+
+    pBNpc->setRoamTargetReached( false );
+    pNavi->setMoveTarget( pBNpc->getAgentId(), targetPos );
+    pBNpc->face( pTarget->getPos() );
   }
 
   void Controller::processGambits( uint64_t tick )
@@ -201,6 +278,7 @@ namespace Sapphire::World::AI
     auto elapsed = Common::Util::getTimeMs() - m_lastTick;
 
     m_stateMachine.update( tick );
+    updateFollowTarget( tick );
     m_lastTick = Common::Util::getTimeMs();
   }
 

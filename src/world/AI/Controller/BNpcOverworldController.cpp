@@ -11,7 +11,6 @@
 #include <AI/Fsm/StateIdle.h>
 #include <AI/Fsm/StateRoam.h>
 #include <AI/Fsm/StateDead.h>
-#include <AI/Fsm/StateFollowTarget.h>
 
 #include <AI/GambitPack.h>
 
@@ -21,28 +20,27 @@
 
 namespace Sapphire::World::AI
 {
-  BNpcOverworldController::BNpcOverworldController( Entity::GameObjectPtr pEntity ) :
-    Controller( pEntity )
+  BNpcOverworldController::BNpcOverworldController( Entity::BNpc& bnpc ) :
+    Controller( bnpc )
   {
-    m_pBNpc = pEntity->getAsBNpc();
+  }
+
+  void BNpcOverworldController::initialize()
+  {
+    Controller::initialize();
 
     using namespace AI::Fsm;
 
-    auto pBNpc = pEntity->getAsBNpc();
+    auto pBNpc = m_owner.getAsBNpc();
     auto pBNpcInfo = pBNpc->getInstanceObjectInfo();
     auto& bnpc = *pBNpc;
 
     auto stateIdle = make_StateIdle();
     auto stateCombat = make_StateCombat();
     auto stateDead = make_StateDead();
-    auto stateFollowTarget = std::make_shared< Fsm::StateFollowTarget >();
 
     auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
     auto pZone = teriMgr.getTerritoryByGuId( pBNpc->getTerritoryId() );
-
-    
-    auto pStateFollowTarget = std::make_shared< Fsm::StateFollowTarget >();
-    
     if( pBNpcInfo->ServerPathId != 0 && pZone && pZone->getServerPath( pBNpcInfo->ServerPathId ) )
     {
       auto statePath = make_StateFollowPath();
@@ -105,12 +103,6 @@ namespace Sapphire::World::AI
       }
       m_stateMachine.setCurrentState( stateIdle );
     }
-    stateFollowTarget->addTransition( make_Transition( stateCombat, make_HateListHasEntriesCondition() ) );
-    stateFollowTarget->addTransition( make_Transition( m_stateMachine.getCurrentState(), std::make_shared< Fsm::FollowTargetInvalidCondition >() ) );
-    stateFollowTarget->addTransition( make_Transition( m_stateMachine.getCurrentState(), make_SpawnPointDistanceGtMaxDistanceCondition() ) );
-    stateCombat->addTransition( stateFollowTarget, make_HateListEmptyCondition() );
-
-    m_stateMachine.getCurrentState()->addTransition( stateFollowTarget, std::make_shared< Fsm::ShouldFollowTargetOutOfCombatCondition >() );
   }
 
   void BNpcOverworldController::update( uint64_t tick )
@@ -118,9 +110,9 @@ namespace Sapphire::World::AI
     // todo: handle gambits here instead of BNpc::processGambits called by StateCombat?
     /*
     if( m_pGambitPack )
-      m_pGambitPack->update( *m_pOwner->getAsBNpc(), tick );
+      m_pGambitPack->update( *m_owner.getAsBNpc(), tick );
     */
-    m_pBNpc->checkAggro();
+    m_owner.getAsBNpc()->checkAggro();
     Controller::update( tick );
   }
 
