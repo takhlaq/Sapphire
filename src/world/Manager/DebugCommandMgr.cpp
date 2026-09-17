@@ -740,7 +740,7 @@ void DebugCommandMgr::add( char* data, Entity::Player& player, std::shared_ptr< 
     auto destCb = [ &player ]() { PlayerMgr::sendDebug( player, "Reached end of path" ); };
 
     if( targetStr[ 0 ] == 'm' && targetStr[ 1 ] == 'p' )
-      pBNpc->getController()->pathTo( player.getPos(), AI::Controller::PathFlags::None, pointCb, destCb );
+      pBNpc->getController()->pathTo( player.getPos(), AI::Controller::PathFlags::IgnoreActorCollision, pointCb, destCb );
     else if( targetStr[ 0 ] == 't' && targetStr[ 1 ] == 'g' )
       pBNpc->getController()->followTarget( player.getId() );
     else

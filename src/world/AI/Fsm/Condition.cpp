@@ -98,7 +98,7 @@ namespace Sapphire::World::AI::Fsm
       const auto& path = pController->getPath();
       if( path.m_type == Controller::PathType::PointList && path.m_currPointIndex >= path.m_points.size() )
         return true;
-      else if( path.m_type != Controller::PathType::PointList && Common::Util::distance( pEntity->getPos(), path.m_targetPos ) <= 2.f )
+      else if( path.m_type != Controller::PathType::PointList && Common::Util::distance( pEntity->getPos(), path.m_targetPos ) <= pBNpc->getNaviTargetReachedDistance() )
         return true;
     }
 

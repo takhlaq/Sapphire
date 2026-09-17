@@ -138,7 +138,7 @@ namespace Sapphire::Common::Navi
     void addAgentUpdateFlag( int32_t naviAgentId, uint8_t flags );
     void removeAgentUpdateFlag( int32_t naviAgentId, uint8_t flags );
 
-    void updateAgentParameters( int32_t naviAgentId, float radius, bool isRunning, float speed );
+    void updateAgentParameters( int32_t naviAgentId, float radius, bool isRunning, float speed, bool ignoreAgentCollision = false );
     const dtNavMesh* getNavMesh() const { return m_naviMesh; }
     const dtTileCache* getTileCache() const { return m_tileCache; }
 

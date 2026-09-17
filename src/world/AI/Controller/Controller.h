@@ -31,7 +31,9 @@ namespace Sapphire::World::AI
       Infinite = 0x01,
       Interruptible = 0x02,
       CanReversePath = 0x04,
-      IgnoreNavmesh = 0x08
+      IgnoreNavmesh = 0x08,
+      RecalculatePerTick = 0x10,
+      IgnoreActorCollision = 0x20
     };
 
     struct Path
@@ -48,7 +50,6 @@ namespace Sapphire::World::AI
       uint32_t m_maxLoops{ 0 };
       uint32_t m_loopCount{ 0 };
       bool m_isReversePath{ false };
-      bool m_recalcPerTick{ false };
 
       void reset()
       {
@@ -62,7 +63,6 @@ namespace Sapphire::World::AI
         m_maxLoops = 0;
         m_loopCount = 0;
         m_isReversePath = false;
-        m_recalcPerTick = false;
       }
     };
 

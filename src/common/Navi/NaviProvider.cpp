@@ -765,7 +765,7 @@ int32_t Sapphire::Common::Navi::NaviProvider::addAgent( const Common::Vector3& p
   return m_pCrowd->addAgent( position, &params );
 }
 
-void Sapphire::Common::Navi::NaviProvider::updateAgentParameters( int32_t naviAgentId, float radius, bool isRunning, float speed )
+void Sapphire::Common::Navi::NaviProvider::updateAgentParameters( int32_t naviAgentId, float radius, bool isRunning, float speed, bool ignoreAgentCollision )
 {
   if( naviAgentId == -1 )
     return;
@@ -784,6 +784,11 @@ void Sapphire::Common::Navi::NaviProvider::updateAgentParameters( int32_t naviAg
                     DT_CROWD_OBSTACLE_AVOIDANCE;
   params.separationWeight = 2.0f;
   params.obstacleAvoidanceType = 3;
+
+  if( ignoreAgentCollision )
+  {
+    // todo:
+  }
   m_pCrowd->updateAgentParameters( naviAgentId, &params );
 }
 

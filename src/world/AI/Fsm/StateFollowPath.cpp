@@ -87,7 +87,20 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
     bool reachedTarget = false;
     if( path.m_type == AI::Controller::PathType::TargetId || path.m_type == AI::Controller::PathType::FixedPos )
     {
+      auto distance = Common::Util::distance( pBNpc->getPos(), targetPos );
+      auto distXZ = Common::Util::distance2D( pBNpc->getPos().x, pBNpc->getPos().z, targetPos.x, targetPos.z );
+      auto distY = std::fabs( pBNpc->getPos().y - targetPos.y );
+
       reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
+
+      Logger::debug( "FollowPath (FixedPos): BNpc {} NaviTargetDist {} Radius {} Distance {} dXZ {} dY {} Pos {} {} {} TargetPos {} {} {}",
+                    pBNpc->getId(), pBNpc->getNaviTargetReachedDistance(), pBNpc->getRadius(),
+                    distance, distXZ, distY,
+                    pBNpc->getPos().x, pBNpc->getPos().y, pBNpc->getPos().z,
+                    targetPos.x, targetPos.y, targetPos.z );
+
+      // todo: some actors have a radius of 0.5 and will never reach target
+      // maybe add threshold for this as path param?
       if( reachedTarget )
       {
         path.m_active = false;
@@ -108,15 +121,15 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
 
       const auto currPoint = path.m_currPointIndex;
 
-      Logger::info( "FollowPath: Pre-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
+      Logger::debug( "FollowPath: Pre-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
       targetPos = path.m_points[ currPoint ];
 
-      Logger::info( "FollowPath: Post-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
+      Logger::debug( "FollowPath: Post-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
       reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
       if( reachedTarget )
       {
-        Logger::info( "FollowPath: Arrived at pos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
-        Logger::info( "FollowPath: currPoint {} pathSize {}", currPoint, pathSize );
+        Logger::debug( "FollowPath: Arrived at pos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
+        Logger::debug( "FollowPath: currPoint {} pathSize {}", currPoint, pathSize );
 
         if( m_onPointReachCb && path.m_prevPointIndex != currPoint )
           m_onPointReachCb( path.m_points[ currPoint ] );
@@ -130,7 +143,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
           {
             path.m_isReversePath = true;
             path.m_currPointIndex = static_cast< uint32_t >( pathSize - 2 );
-            Logger::info( "FollowPath: Reversing path" );
+            Logger::debug( "FollowPath: Reversing path" );
           }
           else
           {
@@ -138,7 +151,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
             path.m_active = false;
             if( m_onDestReachCb )
               m_onDestReachCb();
-            Logger::info( "FollowPath: Reached destination" );
+            Logger::debug( "FollowPath: Reached destination" );
             m_lastTick = now;
             return;
           }
@@ -152,6 +165,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
         }
 
         targetPos = path.m_points[ path.m_currPointIndex ];
+        pBNpc->face( targetPos );
       }
     }
 
@@ -262,8 +276,15 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
       return;
     }
 
+    // disable agent-agent collision, restore in onExit
+    if( path.m_flags & Controller::PathFlags::IgnoreActorCollision && pNaviProvider )
+    {
+      pNaviProvider->updateAgentParameters( pBNpc->getAgentId(), pBNpc->getRadius(), false, pBNpc->getCurrentSpeed(), true );
+    }
+
     if( bnpc.getEnemyType() == Common::Friendly )
     {
+      /*
       path.reset();
 
       path.m_type = AI::Controller::PathType::FixedPos;
@@ -271,6 +292,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
       path.m_active = true;
 
       bnpc.setRoamTargetPos( bnpc.getSpawnPos() );
+      */
     }
     else if( auto serverPath = pZone->getServerPath( pBNpc->getInstanceObjectInfo()->ServerPathId ) )
     {
@@ -318,6 +340,17 @@ void AI::Fsm::StateFollowPath::onExit( Entity::GameObjectPtr& pEntity )
       // todo: this is a dumb hacky workaround to restore server path..
       if( static_cast< Controller::PathType >( m_initialPathType ) == Controller::PathType::ServerPath )
         path.m_type = static_cast< Controller::PathType >( m_initialPathType );
+
+      auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
+      auto pZone = teriMgr.getTerritoryByGuId( pBNpc->getTerritoryId() );
+      if( !pZone )
+        return;
+
+      auto pNaviProvider = pZone->getNaviProvider();
+
+      // allow agent-agent collision again if it was unset for this request
+      if( pNaviProvider )
+        pNaviProvider->updateAgentParameters( pBNpc->getAgentId(), pBNpc->getRadius(), false, pBNpc->getCurrentSpeed(), false );
     }
   }
 }
