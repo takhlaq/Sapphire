@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ForwardsZone.h>
@@ -41,7 +42,8 @@ namespace Sapphire::World::Encounter
 
     Snapshot,
     InterruptAction,
-    RollRNG // todo: make this save to director var idx
+    RollRNG, // todo: make this save to director var idx
+    Mechanic
   };
 
   enum class ActionTargetType : uint32_t
@@ -367,6 +369,21 @@ namespace Sapphire::World::Encounter
       m_max( max ),
       m_type( type ),
       m_idx( varIdx )
+    {
+    }
+  };
+
+  struct TimepointDataMechanic : public TimepointData
+  {
+    std::string m_instance;
+    std::string m_function;
+    nlohmann::json m_args;
+
+    TimepointDataMechanic( std::string instance, std::string function, nlohmann::json args ) :
+      TimepointData( TimepointDataType::Mechanic ),
+      m_instance( std::move( instance ) ),
+      m_function( std::move( function ) ),
+      m_args( std::move( args ) )
     {
     }
   };

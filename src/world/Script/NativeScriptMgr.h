@@ -22,6 +22,8 @@ namespace Sapphire::Scripting
      */
     std::unordered_map< std::size_t, std::unordered_map< uint32_t, Sapphire::ScriptAPI::ScriptObject * > > m_scripts;
 
+    std::unordered_map< std::string, Sapphire::ScriptAPI::MechanicScript* > m_mechanicScripts;
+
 
     ScriptLoader m_loader;
 
@@ -122,6 +124,8 @@ namespace Sapphire::Scripting
 
       return dynamic_cast< T * >( script->second );
     }
+
+    Sapphire::ScriptAPI::MechanicScript* getMechanicScript( const std::string& name );
   };
 
 

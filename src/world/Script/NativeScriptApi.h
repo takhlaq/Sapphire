@@ -1,7 +1,12 @@
 #ifndef NATIVE_SCRIPT_API
 #define NATIVE_SCRIPT_API
 
+#include <memory>
 #include <string>
+#include <string_view>
+#include <utility>
+
+#include <nlohmann/json.hpp>
 #include "ForwardsZone.h"
 #include "Event/EventHandler.h"
 #include "Manager/EventMgr.h"
@@ -24,6 +29,13 @@
 namespace Sapphire
 {
   class Framework;
+}
+
+namespace Sapphire::World::Encounter
+{
+  class Encounter;
+  class TimelinePack;
+  using EncounterPtr = std::shared_ptr< Encounter >;
 }
 
 namespace Sapphire::ScriptAPI
@@ -59,6 +71,27 @@ namespace Sapphire::ScriptAPI
     * @return The hash_code of the script
     */
     virtual std::size_t getType() const;
+  };
+
+  /*! Base definition and per-encounter instance for timeline mechanic scripts. */
+  class MechanicScript : public ScriptObject
+  {
+  public:
+    explicit MechanicScript( std::string name );
+
+    const std::string& getName() const;
+
+    virtual std::shared_ptr< MechanicScript > createInstance() const = 0;
+
+    virtual bool call( std::string_view function, const nlohmann::json& args,
+                       World::Encounter::TimelinePack& pack,
+                       World::Encounter::EncounterPtr pEncounter );
+
+    virtual void update( uint64_t tick, World::Encounter::TimelinePack& pack,
+                         World::Encounter::EncounterPtr pEncounter );
+
+  private:
+    std::string m_name;
   };
 
 

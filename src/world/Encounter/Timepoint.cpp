@@ -65,7 +65,8 @@ namespace Sapphire::World::Encounter
       { "setTrigger"  ,        TimepointDataType::SetTrigger },
       { "snapshot",            TimepointDataType::Snapshot },
       { "interruptAction",     TimepointDataType::InterruptAction },
-      { "rollRNG",             TimepointDataType::RollRNG }
+      { "rollRNG",             TimepointDataType::RollRNG },
+      { "mechanic",            TimepointDataType::Mechanic }
     };
 
     const static std::unordered_map< std::string, DirectorOpId > directorOpMap =
@@ -403,6 +404,17 @@ namespace Sapphire::World::Encounter
         m_pData = std::make_shared< TimepointDataRollRNG >( min, max, type, idx );
       }
       break;
+      case TimepointDataType::Mechanic:
+      {
+        const auto& dataJ = json.at( "data" );
+        auto instance = dataJ.at( "instance" ).get< std::string >();
+        auto function = dataJ.at( "function" ).get< std::string >();
+        auto args = dataJ.value( "args", nlohmann::json::object() );
+
+        m_pData = std::make_shared< TimepointDataMechanic >( std::move( instance ), std::move( function ),
+                                                             std::move( args ) );
+      }
+      break;
       default:
         break;
     }
@@ -437,6 +449,17 @@ namespace Sapphire::World::Encounter
       case TimepointDataType::Idle:
       {
         // just wait up the duration of this timepoint
+      }
+      break;
+      case TimepointDataType::Mechanic:
+      {
+        auto pMechanicData = std::dynamic_pointer_cast< TimepointDataMechanic, TimepointData >( m_pData );
+        if( !pMechanicData )
+          return false;
+
+        pack.callMechanic( pMechanicData->m_instance, pMechanicData->m_function,
+                           pMechanicData->m_args );
+        return true;
       }
       break;
       case TimepointDataType::CastAction:

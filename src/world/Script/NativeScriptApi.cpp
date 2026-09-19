@@ -15,6 +15,20 @@ using namespace Sapphire;
 
 namespace Sapphire::ScriptAPI
 {
+  namespace
+  {
+    uint32_t mechanicScriptId( std::string_view name )
+    {
+      uint32_t hash = 2166136261u;
+      for( const auto character : name )
+      {
+        hash ^= static_cast< uint8_t >( character );
+        hash *= 16777619u;
+      }
+      return hash;
+    }
+  }
+
   ScriptObject::ScriptObject( uint32_t id, std::size_t type ) : m_id( id ),
                                                                 m_type( type )
   {
@@ -28,6 +42,29 @@ namespace Sapphire::ScriptAPI
   std::size_t ScriptObject::getType() const
   {
     return m_type;
+  }
+
+  MechanicScript::MechanicScript( std::string name ) :
+    ScriptObject( mechanicScriptId( name ), typeid( MechanicScript ).hash_code() ),
+    m_name( std::move( name ) )
+  {
+  }
+
+  const std::string& MechanicScript::getName() const
+  {
+    return m_name;
+  }
+
+  bool MechanicScript::call( std::string_view function, const nlohmann::json& args,
+                             World::Encounter::TimelinePack& pack,
+                             World::Encounter::EncounterPtr pEncounter )
+  {
+    return false;
+  }
+
+  void MechanicScript::update( uint64_t tick, World::Encounter::TimelinePack& pack,
+                               World::Encounter::EncounterPtr pEncounter )
+  {
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -335,4 +372,3 @@ namespace Sapphire::ScriptAPI
   {
   }
 }
-
