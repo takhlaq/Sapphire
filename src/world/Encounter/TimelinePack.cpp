@@ -27,6 +27,12 @@
 
 #include <Service.h>
 
+#include <Script/NativeScriptApi.h>
+#include <Script/NativeScriptMgr.h>
+#include <Script/ScriptMgr.h>
+
+#include <Logging/Logger.h>
+
 #include <Territory/QuestBattle.h>
 #include <Territory/InstanceContent.h>
 #include <Util/UtilMath.h>
@@ -81,6 +87,12 @@ namespace Sapphire::World::Encounter
       return nullptr;
 
     auto json = nlohmann::json::parse( f );
+
+    if( auto mechanicsIt = json.find( "mechanics" ); mechanicsIt != json.end() && mechanicsIt->is_object() )
+    {
+      for( const auto& [ instanceName, scriptValue ] : mechanicsIt->items() )
+        pack->addMechanicDefinition( instanceName, scriptValue.get< std::string >() );
+    }
 
     std::unordered_map< std::string, TimelineActor > actorNameMap;
     std::unordered_map< std::string, std::map< uint32_t, PhasePtr > > actorNamePhaseMap;
@@ -378,6 +390,8 @@ namespace Sapphire::World::Encounter
 
   void TimelinePack::reset( EncounterPtr pEncounter )
   {
+    m_mechanics.clear();
+
     for( auto& actor : m_timelineActors )
     {
       actor.resetAllSubActors( pEncounter->getTeriPtr() );
@@ -405,9 +419,17 @@ namespace Sapphire::World::Encounter
 
   void TimelinePack::update( uint64_t time )
   {
-    auto now = Common::Util::getTimeMs(); 
+    auto now = Common::Util::getTimeMs();
     for( auto& actor : m_timelineActors )
       actor.update( m_pEncounter, *this, now );
+
+    std::vector< std::shared_ptr< ScriptAPI::MechanicScript > > mechanics;
+    mechanics.reserve( m_mechanics.size() );
+    for( const auto& [ instanceName, pMechanic ] : m_mechanics )
+      mechanics.emplace_back( pMechanic );
+
+    for( const auto& pMechanic : mechanics )
+      pMechanic->update( now, *this, m_pEncounter );
   }
 
   bool TimelinePack::isPhaseActive( const std::string& actorName, uint32_t phaseId )
@@ -451,5 +473,52 @@ namespace Sapphire::World::Encounter
   void TimelinePack::setVar( uint32_t index, uint32_t val )
   {
     m_vars[ index ] = val;
+  }
+
+  void TimelinePack::addMechanicDefinition( const std::string& instanceName, const std::string& scriptName )
+  {
+    m_mechanicDefinitions[ instanceName ] = scriptName;
+  }
+
+  bool TimelinePack::callMechanic( const std::string& instanceName, const std::string& function,
+                                   const nlohmann::json& args )
+  {
+    auto instanceIt = m_mechanics.find( instanceName );
+    if( instanceIt == m_mechanics.end() )
+    {
+      auto definitionIt = m_mechanicDefinitions.find( instanceName );
+      if( definitionIt == m_mechanicDefinitions.end() )
+      {
+        Logger::error( "TimelinePack '{}': unknown mechanic instance '{}'", m_name, instanceName );
+        return false;
+      }
+
+      auto& scriptMgr = Common::Service< Scripting::ScriptMgr >::ref();
+      auto pDefinition = scriptMgr.getNativeScriptHandler().getMechanicScript( definitionIt->second );
+      if( !pDefinition )
+      {
+        Logger::error( "TimelinePack '{}': mechanic script '{}' is not loaded", m_name, definitionIt->second );
+        return false;
+      }
+
+      auto pInstance = pDefinition->createInstance();
+      if( !pInstance )
+      {
+        Logger::error( "TimelinePack '{}': mechanic script '{}' failed to create instance '{}'",
+                       m_name, definitionIt->second, instanceName );
+        return false;
+      }
+
+      instanceIt = m_mechanics.emplace( instanceName, std::move( pInstance ) ).first;
+    }
+
+    if( !instanceIt->second->call( function, args, *this, m_pEncounter ) )
+    {
+      Logger::error( "TimelinePack '{}': mechanic instance '{}' rejected function '{}'",
+                     m_name, instanceName, function );
+      return false;
+    }
+
+    return true;
   }
 }// namespace Sapphire::Encounter

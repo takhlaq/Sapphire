@@ -1,6 +1,7 @@
 #include "NativeScriptMgr.h"
 
 #include <Crypt/md5.h>
+#include <Logging/Logger.h>
 
 namespace Sapphire::Scripting
 {
@@ -31,6 +32,14 @@ namespace Sapphire::Scripting
       module->scripts.push_back( script );
 
       m_scripts[ script->getType() ][ script->getId() ] = script;
+
+      if( auto pMechanicScript = dynamic_cast< Sapphire::ScriptAPI::MechanicScript* >( script ) )
+      {
+        if( m_mechanicScripts.find( pMechanicScript->getName() ) != m_mechanicScripts.end() )
+          Logger::warn( "Replacing duplicate mechanic script definition: {}", pMechanicScript->getName() );
+
+        m_mechanicScripts[ pMechanicScript->getName() ] = pMechanicScript;
+      }
 
       success = true;
     }
@@ -69,6 +78,13 @@ namespace Sapphire::Scripting
     for( auto& script : info->scripts )
     {
       m_scripts[ script->getType() ].erase( script->getId() );
+
+      if( auto pMechanicScript = dynamic_cast< Sapphire::ScriptAPI::MechanicScript* >( script ) )
+      {
+        auto it = m_mechanicScripts.find( pMechanicScript->getName() );
+        if( it != m_mechanicScripts.end() && it->second == pMechanicScript )
+          m_mechanicScripts.erase( it );
+      }
 
       delete script;
     }
@@ -131,6 +147,17 @@ namespace Sapphire::Scripting
     return m_loader.isModuleLoaded( name );
   }
 
+  Sapphire::ScriptAPI::MechanicScript* NativeScriptMgr::getMechanicScript( const std::string& name )
+  {
+    std::scoped_lock lock( m_mutex );
+
+    auto it = m_mechanicScripts.find( name );
+    if( it == m_mechanicScripts.end() )
+      return nullptr;
+
+    return it->second;
+  }
+
   NativeScriptMgr::NativeScriptMgr( const std::string& cachePath )
   {
     m_loader.setCachePath( cachePath );
@@ -153,6 +180,7 @@ namespace Sapphire::Scripting
 
     // Clear any leftover type->id map entries (should be empty after unloadScript loop, but ensure)
     m_scripts.clear();
+    m_mechanicScripts.clear();
 
     // Clear pending reload queue
     while( !m_scriptLoadQueue.empty() ) m_scriptLoadQueue.pop();
