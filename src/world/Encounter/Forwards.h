@@ -25,13 +25,4 @@ namespace Sapphire::World::Encounter
 
   using EncounterPtr = std::shared_ptr< Encounter >;
   using TimelinePackPtr = std::shared_ptr< TimelinePack >;
-
-  namespace Mechanic
-  {
-    class Mechanic;
-    using MechanicPtr = std::shared_ptr< Mechanic >;
-
-    struct MechanicArg;
-    using MechanicArgPtr = std::shared_ptr< MechanicArg >;
-  }// namespace Mechanic
 }

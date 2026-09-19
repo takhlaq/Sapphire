@@ -11,7 +11,6 @@
 #include <AI/Fsm/StateCombat.h>
 #include <AI/Fsm/StateDead.h>
 #include <AI/Fsm/StateFollowPath.h>
-#include <AI/Fsm/StateFollowTarget.h>
 
 #include <Navi/NaviProvider.h>
 

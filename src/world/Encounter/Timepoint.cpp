@@ -526,7 +526,7 @@ namespace Sapphire::World::Encounter
                   if( distance >= 3.f + pBNpc->getRadius() + pTargetChara->getRadius() )
                   {
                     // pause at this timepoint
-                    return false;
+                    // return false;
                   }
                 }
               }
