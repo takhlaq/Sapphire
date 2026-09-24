@@ -36,7 +36,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
 
     const auto now = Common::Util::getTimeMs();
     const auto elapsed = now - m_lastTick;
-    const bool ignoreNavmesh = path.m_flags & AI::Controller::PathFlags::IgnoreNavmesh;
+    const bool ignoreNavmesh = path.m_flags & AI::Controller::Controller::PathFlags::IgnoreNavmesh;
 
     // Navi target updates do not need to be requested every actor tick. Direct
     // paths do, because the controller itself advances the actor position.
@@ -74,24 +74,27 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
     Common::Vector3 targetPos = pBNpc->getPos();
 
     // path to target
-    if( path.m_type == AI::Controller::PathType::TargetId )
+    if( path.m_type == AI::Controller::Controller::PathType::TargetId )
     {
       auto pEntity = pZone->getEntityById( path.m_targetId );
       if( pEntity )
+      {
         targetPos = pEntity->getPos();
+        path.m_targetPos = targetPos;
+      }
     }
 
-    if( path.m_type == AI::Controller::PathType::FixedPos )
+    if( path.m_type == AI::Controller::Controller::PathType::FixedPos )
       targetPos = path.m_targetPos;
 
     bool reachedTarget = false;
-    if( path.m_type == AI::Controller::PathType::TargetId || path.m_type == AI::Controller::PathType::FixedPos )
+    if( path.m_type == AI::Controller::Controller::PathType::TargetId || path.m_type == AI::Controller::Controller::PathType::FixedPos )
     {
       auto distance = Common::Util::distance( pBNpc->getPos(), targetPos );
       auto distXZ = Common::Util::distance2D( pBNpc->getPos().x, pBNpc->getPos().z, targetPos.x, targetPos.z );
       auto distY = std::fabs( pBNpc->getPos().y - targetPos.y );
 
-      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
+      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos, path.m_targetReachedDist );
 
       Logger::debug( "FollowPath (FixedPos): BNpc {} NaviTargetDist {} Radius {} Distance {} dXZ {} dY {} Pos {} {} {} TargetPos {} {} {}",
                     pBNpc->getId(), pBNpc->getNaviTargetReachedDistance(), pBNpc->getRadius(),
@@ -99,8 +102,6 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
                     pBNpc->getPos().x, pBNpc->getPos().y, pBNpc->getPos().z,
                     targetPos.x, targetPos.y, targetPos.z );
 
-      // todo: some actors have a radius of 0.5 and will never reach target
-      // maybe add threshold for this as path param?
       if( reachedTarget )
       {
         path.m_active = false;
@@ -109,7 +110,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
       }
     }
     // follow predefined path
-    else if( path.m_type == AI::Controller::PathType::PointList || path.m_type == AI::Controller::PathType::ServerPath )
+    else if( path.m_type == AI::Controller::Controller::PathType::PointList || path.m_type == AI::Controller::Controller::PathType::ServerPath )
     {
       const auto pathSize = path.m_points.size();
       if( pathSize == 0 || path.m_currPointIndex >= pathSize )
@@ -125,7 +126,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
       targetPos = path.m_points[ currPoint ];
 
       Logger::debug( "FollowPath: Post-adjustment targetPos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
-      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos );
+      reachedTarget = ignoreNavmesh ? moveDirectly( targetPos ) : pBNpc->moveTo( targetPos, path.m_targetReachedDist );
       if( reachedTarget )
       {
         Logger::debug( "FollowPath: Arrived at pos {} {} {}", targetPos.x, targetPos.y, targetPos.z );
@@ -139,7 +140,7 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
         {
           if( currPoint + 1 < pathSize )
             path.m_currPointIndex = currPoint + 1;
-          else if( path.m_flags & AI::Controller::PathFlags::CanReversePath && pathSize > 1 )
+          else if( path.m_flags & AI::Controller::Controller::PathFlags::CanReversePath && pathSize > 1 )
           {
             path.m_isReversePath = true;
             path.m_currPointIndex = static_cast< uint32_t >( pathSize - 2 );
@@ -256,7 +257,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
   if( !pController )
     return;
 
-  if( m_initialPathType == static_cast< uint32_t >( Controller::PathType::None ) )
+  if( m_initialPathType == static_cast< uint32_t >( Controller::Controller::PathType::None ) )
     m_initialPathType = static_cast< uint32_t >( pController->getPath().m_type );
 
   if( auto pBNpc = pEntity->getAsBNpc() )
@@ -265,11 +266,14 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
 
     auto& path = pController->getPath();
 
+    if( path.m_targetReachedDist == std::numeric_limits< float >::max() )
+      path.m_targetReachedDist = bnpc.getNaviTargetReachedDistance();
+
     bnpc.setNaviIsPathing( true );
     bnpc.setPathingActive( true );
     bnpc.setRoamTargetPos( path.m_targetPos );
 
-    const bool ignoreNavmesh = path.m_flags & Controller::PathFlags::IgnoreNavmesh;
+    const bool ignoreNavmesh = path.m_flags & Controller::Controller::PathFlags::IgnoreNavmesh;
     if( ( !ignoreNavmesh && !pNaviProvider ) || bnpc.hasFlag( Entity::NoRoam ) || bnpc.hasFlag( Entity::Immobile ) )
     {
       bnpc.setRoamTargetReached( true );
@@ -277,7 +281,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
     }
 
     // disable agent-agent collision, restore in onExit
-    if( path.m_flags & Controller::PathFlags::IgnoreActorCollision && pNaviProvider )
+    if( path.m_flags & Controller::Controller::PathFlags::IgnoreActorCollision && pNaviProvider )
     {
       pNaviProvider->updateAgentParameters( pBNpc->getAgentId(), pBNpc->getRadius(), false, pBNpc->getCurrentSpeed(), true );
     }
@@ -296,7 +300,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
     }
     else if( auto serverPath = pZone->getServerPath( pBNpc->getInstanceObjectInfo()->ServerPathId ) )
     {
-      if( path.m_type != Controller::PathType::ServerPath )
+      if( path.m_type != Controller::Controller::PathType::ServerPath )
         return;
 
       // restore server path
@@ -306,7 +310,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
       path.reset();
 
       path.m_active = true;
-      path.m_type = AI::Controller::PathType::ServerPath;
+      path.m_type = AI::Controller::Controller::PathType::ServerPath;
       path.m_targetPos = { serverPath->position.x + serverPath->points[ 0 ].Translation.x,
                            serverPath->position.y + serverPath->points[ 0 ].Translation.y,
                            serverPath->position.z + serverPath->points[ 0 ].Translation.z
@@ -338,8 +342,8 @@ void AI::Fsm::StateFollowPath::onExit( Entity::GameObjectPtr& pEntity )
       // path.reset();
 
       // todo: this is a dumb hacky workaround to restore server path..
-      if( static_cast< Controller::PathType >( m_initialPathType ) == Controller::PathType::ServerPath )
-        path.m_type = static_cast< Controller::PathType >( m_initialPathType );
+      if( static_cast< Controller::Controller::PathType >( m_initialPathType ) == Controller::Controller::PathType::ServerPath )
+        path.m_type = static_cast< Controller::Controller::PathType >( m_initialPathType );
 
       auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
       auto pZone = teriMgr.getTerritoryByGuId( pBNpc->getTerritoryId() );
@@ -353,4 +357,14 @@ void AI::Fsm::StateFollowPath::onExit( Entity::GameObjectPtr& pEntity )
         pNaviProvider->updateAgentParameters( pBNpc->getAgentId(), pBNpc->getRadius(), false, pBNpc->getCurrentSpeed(), false );
     }
   }
+}
+
+void AI::Fsm::StateFollowPath::setOnPointReachedCb( const std::function< void( Common::Vector3 ) >& onPointReachCb )
+{
+  m_onPointReachCb = onPointReachCb;
+}
+
+void AI::Fsm::StateFollowPath::setOnDestReachedCb( const std::function< void() >& onDestReachCb )
+{
+  m_onDestReachCb = onDestReachCb;
 }

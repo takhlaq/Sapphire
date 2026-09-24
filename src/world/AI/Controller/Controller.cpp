@@ -21,7 +21,7 @@
 #include <Logging/Logger.h>
 #include <Util/UtilMath.h>
 
-namespace Sapphire::World::AI
+namespace Sapphire::World::AI::Controller
 {
 
   void Controller::initialize()
@@ -63,7 +63,7 @@ namespace Sapphire::World::AI
   {
   }
 
-  void Controller::pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
+  void Controller::pathTo( const Common::Vector3& pos, float targetReachedDist, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
   {
     auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
     auto pTeri = teriMgr.getTerritoryByGuId( m_owner.getTerritoryId() );
@@ -86,6 +86,7 @@ namespace Sapphire::World::AI
     m_path.m_type = PathType::FixedPos;
     m_path.m_targetPos = pos;
     m_path.m_flags = flags;
+    m_path.m_targetReachedDist = targetReachedDist;
     m_path.m_active = true;
 
     if( !( flags & PathFlags::IgnoreNavmesh ) )

@@ -58,9 +58,5 @@ void AI::Fsm::StateMachine::update( uint64_t tickCount )
 
     m_pPrevState = m_pCurrentState;
     m_pCurrentState = transition->getTargetState();
-
-    m_pCurrentState->onEnter( pOwner );
-    m_pCurrentState->setInitialised( true );
-    m_pCurrentState->onUpdate( pOwner, tickCount );
   }
 }

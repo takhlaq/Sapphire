@@ -314,12 +314,12 @@ BNpc::~BNpc()
   detachController();
 }
 
-World::AI::Controller* BNpc::getController()
+World::AI::Controller::Controller* BNpc::getController()
 {
   return m_pController.get();
 }
 
-bool BNpc::setController( World::AI::ControllerUPtr pController )
+bool BNpc::setController( World::AI::Controller::ControllerUPtr pController )
 {
   if( m_controllerInitialized || !pController )
     return false;
@@ -443,7 +443,7 @@ float BNpc::getCurrentSpeed() const
   return isRunning ? getRunSpeed() : getWalkSpeed();
 }
 
-bool BNpc::moveTo( const Vector3& pos )
+bool BNpc::moveTo( const Vector3& pos, float targetReachedDist )
 {
   auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
   auto pZone = teriMgr.getTerritoryByGuId( getTerritoryId() );
@@ -456,10 +456,13 @@ bool BNpc::moveTo( const Vector3& pos )
     return false;
   }
 
+  if( targetReachedDist == std::numeric_limits< float >::max() )
+    targetReachedDist = getNaviTargetReachedDistance();
+
   auto pos1 = pNaviProvider->getAgentPos( getAgentId() );
   auto distance = Common::Util::distance( pos1, pos );
 
-  if( distance <= getNaviTargetReachedDistance() )
+  if( distance <= targetReachedDist )
   {
     // Reached destination
     face( pos );
@@ -485,9 +488,9 @@ bool BNpc::moveTo( const Vector3& pos )
   return false;
 }
 
-bool BNpc::moveTo( const Chara& targetChara )
+bool BNpc::moveTo( const Chara& targetChara, float targetReachedDist )
 {
-  return moveTo( targetChara.getPos() );
+  return moveTo( targetChara.getPos(), targetReachedDist );
 }
 
 float mapSpeedToRange( float speed, float minSpeed = 0.0f, float maxSpeed = 18.0f )
@@ -1369,7 +1372,7 @@ void BNpc::init()
   m_pGambitPack = gambitPack;
   */
   if( !m_pController )
-    m_pController = std::make_unique< AI::BNpcOverworldController >( *this );
+    m_pController = std::make_unique< AI::Controller::BNpcOverworldController >( *this );
 
   m_pController->setGambitPack( pGambitPack );
   m_pController->initialize();

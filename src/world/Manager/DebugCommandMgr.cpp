@@ -32,6 +32,8 @@
 #include "Actor/BNpc.h"
 
 #include "AI/Controller/Controller.h"
+#include "AI/Controller/BNpcHomingController.h"
+#include "AI/Controller/BNpcOverworldController.h"
 
 #include "Action/Action.h"
 #include "Action/ActionLutData.h"
@@ -739,12 +741,44 @@ void DebugCommandMgr::add( char* data, Entity::Player& player, std::shared_ptr< 
     auto pointCb = [ &player ]( Common::Vector3 pos ) { PlayerMgr::sendDebug( player, "Reached point on path" ); };
     auto destCb = [ &player ]() { PlayerMgr::sendDebug( player, "Reached end of path" ); };
 
+    // player pos
     if( targetStr[ 0 ] == 'm' && targetStr[ 1 ] == 'p' )
-      pBNpc->getController()->pathTo( player.getPos(), AI::Controller::PathFlags::IgnoreActorCollision, pointCb, destCb );
+    {
+      pBNpc->getController()->pathTo( player.getPos(), pBNpc->getNaviTargetReachedDistance(), AI::Controller::Controller::PathFlags::IgnoreActorCollision, pointCb, destCb );
+    }
+    // follow player
     else if( targetStr[ 0 ] == 't' && targetStr[ 1 ] == 'g' )
+    {
       pBNpc->getController()->followTarget( player.getId() );
+    }
+    // homing bnpc
+    else if( targetStr[ 0 ] == 'h' )
+    {
+      pBNpc->detachController();
+      auto pPlayer = player.getAsPlayer();
+
+      auto pHomingController = std::make_unique< AI::Controller::BNpcHomingController >( *pBNpc );
+      auto cb = [ pBNpc, pPlayer ]() {
+        if( pBNpc )
+        {
+          auto pController = std::make_unique< AI::Controller::BNpcOverworldController >( *pBNpc );
+          pBNpc->detachController();
+          pBNpc->setController( std::move( pController ) );
+          pBNpc->getController()->initialize();
+
+          if( pPlayer )
+            PlayerMgr::sendDebug( *pPlayer, "Homing dest reached. Reverting to BNpcOverworldController" );
+        }
+      };
+      pHomingController->setHomingTargetId( player.getId(), cb );
+      pBNpc->setController( std::move( pHomingController ) );
+      pBNpc->getController()->initialize();
+    }
+    // follow predefined path
     else
-      pBNpc->getController()->followPath( points, AI::Controller::PathFlags::CanReversePath, pointCb, destCb );
+    {
+      pBNpc->getController()->followPath( points, AI::Controller::Controller::PathFlags::CanReversePath, pointCb, destCb );
+    }
   }
 }
 

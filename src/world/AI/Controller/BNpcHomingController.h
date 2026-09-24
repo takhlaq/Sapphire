@@ -4,10 +4,10 @@
 
 namespace Sapphire::World::AI::Controller
 {
-  class BNpcOverworldController : public Controller
+  class BNpcHomingController : public Controller
   {
   public:
-    explicit BNpcOverworldController( Entity::BNpc& bnpc );
+    explicit BNpcHomingController( Entity::BNpc& bnpc );
 
     void initialize() override;
 
@@ -20,6 +20,9 @@ namespace Sapphire::World::AI::Controller
     void pathTo( const Common::Vector3& pos, float targetReachedDist, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} ) override;
     void followPath( const std::vector< Common::Vector3 >& path, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} ) override;
     void followTarget( uint32_t targetId, bool followDuringCombat = false ) override;
+
+    void setHomingTargetId( uint32_t targetId, const std::function< void() >& onReachDestination = {} );
+    void setHomingTargetPos( Common::Vector3& pos, const std::function< void() >& onReachDestination = {} );
 
     void update( uint64_t tick ) override;
   };

@@ -410,7 +410,7 @@ void GameObject::setCellId( CellId cellId )
   m_cellId = cellId;
 }
 
-Sapphire::World::AI::Controller* GameObject::getController()
+Sapphire::World::AI::Controller::Controller* GameObject::getController()
 {
   return nullptr;
 }

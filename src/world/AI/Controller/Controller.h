@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -11,7 +12,7 @@
 
 #include <AI/Fsm/StateMachine.h>
 
-namespace Sapphire::World::AI
+namespace Sapphire::World::AI::Controller
 {
   class Controller
   {
@@ -50,6 +51,12 @@ namespace Sapphire::World::AI
       uint32_t m_maxLoops{ 0 };
       uint32_t m_loopCount{ 0 };
       bool m_isReversePath{ false };
+      float m_targetReachedDist;
+
+      Path()
+      {
+        reset();
+      }
 
       void reset()
       {
@@ -63,6 +70,7 @@ namespace Sapphire::World::AI
         m_maxLoops = 0;
         m_loopCount = 0;
         m_isReversePath = false;
+        m_targetReachedDist = std::numeric_limits< float >::max();
       }
     };
 
@@ -83,7 +91,7 @@ namespace Sapphire::World::AI
     virtual void rangedAutoAttack( uint32_t targetId );
     virtual void deaggro();
     virtual void clearEnmityList();
-    virtual void pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} );
+    virtual void pathTo( const Common::Vector3& pos, float targetReachedDist, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} );
     virtual void followPath( const std::vector< Common::Vector3 >& path, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint = {}, const std::function< void() >& onReachDestination = {} );
     virtual void followTarget( uint32_t targetId, bool followDuringCombat = false );
     virtual void stopFollowingTarget();

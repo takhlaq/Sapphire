@@ -72,34 +72,9 @@ namespace Sapphire::World::AI::Fsm
     bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
   };
 
-  class FollowTargetReachedCondition : public Condition
-  {
-  public:
-    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
-  };
-
   class FollowTargetInvalidCondition : public Condition
   {
   public:
     bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
   };
-
-  class ShouldFollowTargetAlwaysCondition : public Condition
-  {
-  public:
-    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
-  };
-
-  class ShouldFollowTargetOutOfCombatCondition : public Condition
-  {
-  public:
-    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
-  };
-
-  class ShouldFollowPathCondition : public Condition
-  {
-  public:
-    bool isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const override;
-  };
-
 }

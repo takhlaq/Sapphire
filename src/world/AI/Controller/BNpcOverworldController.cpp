@@ -18,7 +18,7 @@
 
 #include <Logging/Logger.h>
 
-namespace Sapphire::World::AI
+namespace Sapphire::World::AI::Controller
 {
   BNpcOverworldController::BNpcOverworldController( Entity::BNpc& bnpc ) :
     Controller( bnpc )
@@ -147,10 +147,10 @@ namespace Sapphire::World::AI
     // todo:
   }
 
-  void BNpcOverworldController::pathTo( const Common::Vector3& pos, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
+  void BNpcOverworldController::pathTo( const Common::Vector3& pos, float targetReachedDist, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )
   {
     // todo:
-    Controller::pathTo( pos, flags, onReachPoint, onReachDestination );
+    Controller::pathTo( pos, targetReachedDist, flags, onReachPoint, onReachDestination );
   }
 
   void BNpcOverworldController::followPath( const std::vector< Common::Vector3 >& path, PathFlags flags, const std::function< void( Common::Vector3 ) >& onReachPoint, const std::function< void() >& onReachDestination )

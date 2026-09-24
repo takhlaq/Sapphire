@@ -27,6 +27,9 @@ namespace Sapphire::World::AI::Fsm
     void onEnter( Entity::GameObjectPtr& pEntity ) override;
     void onExit( Entity::GameObjectPtr& pEntity ) override;
 
+    void setOnPointReachedCb( const std::function< void( Common::Vector3 ) >& onPointReachCb );
+    void setOnDestReachedCb( const std::function< void() >& onDestReachedCb );
+
   private:
     std::function< void( Common::Vector3 ) > m_onPointReachCb;
     std::function< void() > m_onDestReachCb;
