@@ -55,8 +55,13 @@ namespace World::AI
   TYPE_FORWARD( GambitTimeLinePack );
   TYPE_FORWARD( GambitRuleSetPack );
 
-  TYPE_FORWARD( Controller );
-  TYPE_FORWARD( BNpcOverworldController );
+  namespace Controller
+  {
+    TYPE_FORWARD( Controller );
+    TYPE_FORWARD( BNpcOverworldController );
+    TYPE_FORWARD( BNpcHomingController );
+    TYPE_FORWARD( BNpcSubActorController );
+  }
 }
 
 namespace World::AI::Fsm

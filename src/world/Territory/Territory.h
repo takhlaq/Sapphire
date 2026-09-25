@@ -18,6 +18,8 @@
 #include <Exd/Structs.h>
 #include <Navi/NaviProvider.h>
 
+#include <AI/Controller/Controller.h>
+
 namespace Sapphire
 {
   using FestivalPair = std::pair< uint16_t, uint16_t >;
@@ -186,8 +188,8 @@ namespace Sapphire
 
     void addEObj( Entity::EventObjectPtr object );
 
-    Entity::BNpcPtr createBNpcFromLayoutId( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0 );
-    Entity::BNpcPtr createBNpcFromLayoutIdNoPush( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0 );
+    Entity::BNpcPtr createBNpcFromLayoutId( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0, World::AI::Controller::ControllerUPtr pController = nullptr );
+    Entity::BNpcPtr createBNpcFromLayoutIdNoPush( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0, World::AI::Controller::ControllerUPtr pController = nullptr );
 
     Entity::GameObjectPtr getEntityById( uint32_t entityId );
 

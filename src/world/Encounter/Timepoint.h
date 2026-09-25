@@ -358,12 +358,12 @@ namespace Sapphire::World::Encounter
 
   struct TimepointDataRollRNG : public TimepointData
   {
-    uint32_t m_min;
-    uint32_t m_max;
+    uint64_t m_min;
+    uint64_t m_max;
     VarType m_type;
     uint32_t m_idx;
 
-    TimepointDataRollRNG( uint32_t min, uint32_t max, VarType type, uint32_t varIdx ) :
+    TimepointDataRollRNG( uint64_t min, uint64_t max, VarType type, uint32_t varIdx ) :
       TimepointData( TimepointDataType::RollRNG ),
       m_min( min ),
       m_max( max ),

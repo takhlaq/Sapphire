@@ -10,6 +10,11 @@
 #include <Actor/EventObject.h>
 #include <Actor/Player.h>
 
+#include <AI/Controller/Controller.h>
+#include <AI/Controller/BNpcHomingController.h>
+#include <AI/Controller/BNpcOverworldController.h>
+#include <AI/Controller/BNpcSubActorController.h>
+
 #include <Event/Director.h>
 
 #include <Manager/ActionMgr.h>
@@ -526,7 +531,7 @@ namespace Sapphire::World::Encounter
                   if( distance >= 3.f + pBNpc->getRadius() + pTargetChara->getRadius() )
                   {
                     // pause at this timepoint
-                    return false;
+                    // return false;
                   }
                 }
               }

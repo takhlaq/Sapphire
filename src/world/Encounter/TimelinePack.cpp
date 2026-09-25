@@ -462,7 +462,7 @@ namespace Sapphire::World::Encounter
     m_pEncounter = pEncounter;
   }
 
-  uint32_t TimelinePack::getVar( uint32_t index ) const
+  uint64_t TimelinePack::getVar( uint32_t index ) const
   {
     auto it = m_vars.find( index );
     if( it != m_vars.end() )
@@ -470,7 +470,7 @@ namespace Sapphire::World::Encounter
     return 0;
   }
 
-  void TimelinePack::setVar( uint32_t index, uint32_t val )
+  void TimelinePack::setVar( uint32_t index, uint64_t val )
   {
     m_vars[ index ] = val;
   }

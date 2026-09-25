@@ -4,10 +4,10 @@
 
 namespace Sapphire::World::AI::Controller
 {
-  class BNpcOverworldController : public Controller
+  class BNpcSubActorController : public Controller
   {
   public:
-    explicit BNpcOverworldController( Entity::BNpc& bnpc );
+    explicit BNpcSubActorController( Entity::BNpc& bnpc );
 
     void initialize() override;
 
@@ -23,4 +23,4 @@ namespace Sapphire::World::AI::Controller
 
     void update( uint64_t tick ) override;
   };
-}
+}// namespace Sapphire::World::AI::Controller

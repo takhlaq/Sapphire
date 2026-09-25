@@ -156,7 +156,7 @@ namespace Sapphire::Entity
     void setCellId( Common::CellId cellId );
 
 
-    virtual World::AI::Controller* getController();
+    virtual World::AI::Controller::Controller* getController();
 
     uint32_t getFollowTargetId() const;
     void setFollowTargetId( uint32_t id );

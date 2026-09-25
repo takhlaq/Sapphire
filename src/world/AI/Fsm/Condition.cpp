@@ -96,41 +96,14 @@ namespace Sapphire::World::AI::Fsm
         return true;
 
       const auto& path = pController->getPath();
-      if( path.m_type == Controller::PathType::PointList && path.m_currPointIndex >= path.m_points.size() )
+      if( ( path.m_type == Controller::Controller::PathType::PointList || path.m_type == Controller::Controller::PathType::ServerPath ) && path.m_currPointIndex >= path.m_points.size() )
         return true;
-      else if( path.m_type != Controller::PathType::PointList && Common::Util::distance( pEntity->getPos(), path.m_targetPos ) <= pBNpc->getNaviTargetReachedDistance() )
+      else if( path.m_type != Controller::Controller::PathType::PointList && path.m_type != Controller::Controller::PathType::ServerPath
+              && Common::Util::distance( pEntity->getPos(), path.m_targetPos ) <= path.m_targetReachedDist )
         return true;
     }
 
     return false;
-  }
-
-  bool FollowTargetReachedCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
-  {
-    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
-      return true;
-
-    if( auto pController = pEntity->getController() )
-    {
-      auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-      auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
-
-      if( !pZone )
-        return true;
-
-      volatile float maxDist = 2.f;
-      if( auto pBNpc = pEntity->getAsBNpc() )
-        maxDist = pBNpc->getNaviTargetReachedDistance();
-
-      maxDist = maxDist < 2.f ? 2.f : maxDist;
-
-      if( auto pTarget = pZone->getEntityById( pEntity->getFollowTargetId() ) )
-      {
-        volatile auto dist = Common::Util::distance2D( pEntity->getPos().x, pEntity->getPos().z, pTarget->getPos().x, pTarget->getPos().z );
-        return dist <= maxDist;
-      }
-    }
-    return true;
   }
 
   bool FollowTargetInvalidCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
@@ -150,76 +123,5 @@ namespace Sapphire::World::AI::Fsm
         return false;
     }
     return true;
-  }
-
-  bool ShouldFollowTargetAlwaysCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
-  {
-    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
-      return false;
-
-    if( auto pController = pEntity->getController() )
-    {
-      auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-      auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
-
-      if( !pZone )
-        return true;
-
-      float maxDist = 2.f;
-      if( auto pBNpc = pEntity->getAsBNpc() )
-        maxDist = pBNpc->getNaviTargetReachedDistance();
-
-      maxDist = maxDist < 2.f ? 2.f : maxDist;
-
-      if( auto pTarget = pZone->getEntityById( pEntity->getFollowTargetId() ) )
-      {
-        volatile auto dist = Common::Util::distance2D( pEntity->getPos().x, pEntity->getPos().z, pTarget->getPos().x, pTarget->getPos().z );
-        return dist > maxDist;
-      }
-    }
-    return false;
-  }
-
-  bool ShouldFollowTargetOutOfCombatCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
-  {
-    if( pEntity->getFollowTargetId() == Common::INVALID_GAME_OBJECT_ID )
-      return false;
-
-    if( auto pController = pEntity->getController() )
-    {
-      // todo: proper in combat flags?
-      if( auto isCombatState = pController->isCurrentState< StateCombat >() )
-        return false;
-
-      auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-      auto pZone = teriMgr.getTerritoryByGuId( pEntity->getTerritoryId() );
-
-      if( !pZone )
-        return true;
-
-      volatile float maxDist = 3.f;
-      if( auto pBNpc = pEntity->getAsBNpc() )
-        maxDist = pBNpc->getNaviTargetReachedDistance();
-
-      maxDist = maxDist < 3.f ? 3.f : maxDist;
-
-      if( auto pTarget = pZone->getEntityById( pEntity->getFollowTargetId() ) )
-      {
-        volatile auto dist = Common::Util::distance2D( pEntity->getPos().x, pEntity->getPos().z, pTarget->getPos().x, pTarget->getPos().z );
-        return dist > maxDist;
-      }
-    }
-    return false;
-  }
-
-  bool ShouldFollowPathCondition::isConditionMet( Sapphire::Entity::GameObjectPtr& pEntity ) const
-  {
-    if( auto pController = pEntity->getController() )
-    {
-      const auto& path = pController->getPath();
-
-      return path.m_type != Controller::PathType::None && path.m_type != Controller::PathType::TargetId && Common::Util::distance( pEntity->getPos(), path.m_targetPos ) > 2.f;
-    }
-    return false;
   }
 };// namespace Sapphire::World::AI::Fsm

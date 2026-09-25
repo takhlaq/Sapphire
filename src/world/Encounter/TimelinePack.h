@@ -101,9 +101,9 @@ namespace Sapphire::World::Encounter
 
     void setEncounter( std::shared_ptr< Encounter > pEncounter );
 
-    uint32_t getVar( uint32_t index ) const;
+    uint64_t getVar( uint32_t index ) const;
 
-    void setVar( uint32_t index, uint32_t val );
+    void setVar( uint32_t index, uint64_t val );
 
     void addMechanicDefinition( const std::string& instanceName, const std::string& scriptName );
 
