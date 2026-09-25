@@ -483,25 +483,26 @@ namespace Sapphire::World::Encounter
   bool TimelinePack::callMechanic( const std::string& instanceName, const std::string& function,
                                    const nlohmann::json& args )
   {
+    auto definitionIt = m_mechanicDefinitions.find( instanceName );
+    if( definitionIt == m_mechanicDefinitions.end() )
+    {
+      Logger::error( "TimelinePack '{}': unknown mechanic instance '{}'", m_name, instanceName );
+      return false;
+    }
+
+    auto& scriptMgr = Common::Service< Scripting::ScriptMgr >::ref();
+    auto& registry = scriptMgr.getNativeScriptHandler().getMechanicRegistry();
+
     auto instanceIt = m_mechanics.find( instanceName );
     if( instanceIt == m_mechanics.end() )
     {
-      auto definitionIt = m_mechanicDefinitions.find( instanceName );
-      if( definitionIt == m_mechanicDefinitions.end() )
-      {
-        Logger::error( "TimelinePack '{}': unknown mechanic instance '{}'", m_name, instanceName );
-        return false;
-      }
-
-      auto& scriptMgr = Common::Service< Scripting::ScriptMgr >::ref();
-      auto pDefinition = scriptMgr.getNativeScriptHandler().getMechanicScript( definitionIt->second );
-      if( !pDefinition )
+      if( !registry.contains( definitionIt->second ) )
       {
         Logger::error( "TimelinePack '{}': mechanic script '{}' is not loaded", m_name, definitionIt->second );
         return false;
       }
 
-      auto pInstance = pDefinition->createInstance();
+      auto pInstance = registry.create( definitionIt->second );
       if( !pInstance )
       {
         Logger::error( "TimelinePack '{}': mechanic script '{}' failed to create instance '{}'",
@@ -512,7 +513,7 @@ namespace Sapphire::World::Encounter
       instanceIt = m_mechanics.emplace( instanceName, std::move( pInstance ) ).first;
     }
 
-    if( !instanceIt->second->call( function, args, *this, m_pEncounter ) )
+    if( !registry.invoke( definitionIt->second, *instanceIt->second, function, args, *this, m_pEncounter ) )
     {
       Logger::error( "TimelinePack '{}': mechanic instance '{}' rejected function '{}'",
                      m_name, instanceName, function );

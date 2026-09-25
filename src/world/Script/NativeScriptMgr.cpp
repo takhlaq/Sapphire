@@ -29,17 +29,20 @@ namespace Sapphire::Scripting
         break;
 
       auto script = scripts[ i ];
+
+      if( auto pMechanicDefinition = dynamic_cast< Sapphire::ScriptAPI::MechanicScriptDefinition* >( script ) )
+      {
+        if( !m_mechanicRegistry.registerDefinition( *pMechanicDefinition ) )
+        {
+          Logger::error( "Duplicate mechanic script definition: {}", pMechanicDefinition->getName() );
+          delete script;
+          continue;
+        }
+      }
+
       module->scripts.push_back( script );
 
       m_scripts[ script->getType() ][ script->getId() ] = script;
-
-      if( auto pMechanicScript = dynamic_cast< Sapphire::ScriptAPI::MechanicScript* >( script ) )
-      {
-        if( m_mechanicScripts.find( pMechanicScript->getName() ) != m_mechanicScripts.end() )
-          Logger::warn( "Replacing duplicate mechanic script definition: {}", pMechanicScript->getName() );
-
-        m_mechanicScripts[ pMechanicScript->getName() ] = pMechanicScript;
-      }
 
       success = true;
     }
@@ -79,12 +82,8 @@ namespace Sapphire::Scripting
     {
       m_scripts[ script->getType() ].erase( script->getId() );
 
-      if( auto pMechanicScript = dynamic_cast< Sapphire::ScriptAPI::MechanicScript* >( script ) )
-      {
-        auto it = m_mechanicScripts.find( pMechanicScript->getName() );
-        if( it != m_mechanicScripts.end() && it->second == pMechanicScript )
-          m_mechanicScripts.erase( it );
-      }
+      if( auto pMechanicDefinition = dynamic_cast< Sapphire::ScriptAPI::MechanicScriptDefinition* >( script ) )
+        m_mechanicRegistry.unregisterDefinition( *pMechanicDefinition );
 
       delete script;
     }
@@ -147,15 +146,9 @@ namespace Sapphire::Scripting
     return m_loader.isModuleLoaded( name );
   }
 
-  Sapphire::ScriptAPI::MechanicScript* NativeScriptMgr::getMechanicScript( const std::string& name )
+  const MechanicRegistry& NativeScriptMgr::getMechanicRegistry() const
   {
-    std::scoped_lock lock( m_mutex );
-
-    auto it = m_mechanicScripts.find( name );
-    if( it == m_mechanicScripts.end() )
-      return nullptr;
-
-    return it->second;
+    return m_mechanicRegistry;
   }
 
   NativeScriptMgr::NativeScriptMgr( const std::string& cachePath )
@@ -180,7 +173,7 @@ namespace Sapphire::Scripting
 
     // Clear any leftover type->id map entries (should be empty after unloadScript loop, but ensure)
     m_scripts.clear();
-    m_mechanicScripts.clear();
+    m_mechanicRegistry.clear();
 
     // Clear pending reload queue
     while( !m_scriptLoadQueue.empty() ) m_scriptLoadQueue.pop();
