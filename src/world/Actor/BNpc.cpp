@@ -62,6 +62,7 @@
 #include <AI/Fsm/StateResumePath.h>
 #include <AI/TargetHelper.h>
 
+#include <AI/Controller/Controller.h>
 #include <AI/Controller/BNpcOverworldController.h>
 
 using namespace Sapphire;
@@ -460,9 +461,15 @@ bool BNpc::moveTo( const Vector3& pos, float targetReachedDist )
     targetReachedDist = getNaviTargetReachedDistance();
 
   auto pos1 = pNaviProvider->getAgentPos( getAgentId() );
+
+  auto dY = std::fabs( pos.y - pos1.y );
+  auto dXZ = Common::Util::distance2D( pos1.x, pos1.z, pos.x, pos.z );
+  // todo: find the real y diff retail uses to determine if we should move
+  auto yThreshold = 2.5f;
+
   auto distance = Common::Util::distance( pos1, pos );
 
-  if( distance <= targetReachedDist )
+  if( dXZ <= targetReachedDist && dY <= yThreshold )
   {
     // Reached destination
     face( pos );

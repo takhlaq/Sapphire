@@ -34,7 +34,9 @@ namespace Sapphire::World::AI::Controller
       CanReversePath = 0x04,
       IgnoreNavmesh = 0x08,
       RecalculatePerTick = 0x10,
-      IgnoreActorCollision = 0x20
+      IgnoreActorCollision = 0x20,
+      // todo:
+      PathToExactPos = 0x40
     };
 
     struct Path

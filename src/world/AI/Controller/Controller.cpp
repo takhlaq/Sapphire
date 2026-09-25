@@ -227,7 +227,8 @@ namespace Sapphire::World::AI::Controller
     if( !pNavi || pBNpc->getAgentId() == -1 )
       return;
 
-    const auto targetPos = Common::Util::getOffsettedPosition( pTarget->getPos(), pTarget->getRot(), 0.f, 0.f, -1.f );
+    // const auto targetPos = Common::Util::getOffsettedPosition( pTarget->getPos(), pTarget->getRot(), 0.f, 0.f, -1.f );
+    const auto& targetPos = pTarget->getPos();
     pBNpc->setPathingActive( true );
     pBNpc->setRoamTargetPos( targetPos );
 

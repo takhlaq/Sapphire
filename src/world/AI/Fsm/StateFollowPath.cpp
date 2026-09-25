@@ -34,6 +34,10 @@ void AI::Fsm::StateFollowPath::onUpdate( Entity::GameObjectPtr& pEntity, uint64_
     if( !path.m_active )
       return;
 
+    // we don't wanna account for radius in this path request but leave some leeway in case pos is slightly off
+    if( path.m_flags & AI::Controller::Controller::PathFlags::PathToExactPos )
+      path.m_targetReachedDist = 0.5f;
+
     const auto now = Common::Util::getTimeMs();
     const auto elapsed = now - m_lastTick;
     const bool ignoreNavmesh = path.m_flags & AI::Controller::Controller::PathFlags::IgnoreNavmesh;
@@ -298,7 +302,7 @@ void AI::Fsm::StateFollowPath::onEnter( Entity::GameObjectPtr& pEntity )
       bnpc.setRoamTargetPos( bnpc.getSpawnPos() );
       */
     }
-    else if( auto serverPath = pZone->getServerPath( pBNpc->getInstanceObjectInfo()->ServerPathId ) )
+    if( auto serverPath = pZone->getServerPath( pBNpc->getInstanceObjectInfo()->ServerPathId ) )
     {
       if( path.m_type != Controller::Controller::PathType::ServerPath )
         return;

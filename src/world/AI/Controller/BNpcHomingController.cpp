@@ -95,5 +95,6 @@ namespace Sapphire::World::AI::Controller
   void BNpcHomingController::update( uint64_t tick )
   {
     m_stateMachine.update( tick );
+    m_lastTick = tick;
   }
 }

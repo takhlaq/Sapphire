@@ -6,6 +6,8 @@
 #include "Actor/GameObject.h"
 #include "Actor/Player.h"
 
+#include "AI/Controller/Controller.h"
+
 #include "Logging/Logger.h"
 
 #include "Manager/PlayerMgr.h"
@@ -59,6 +61,7 @@ namespace Sapphire::World::Encounter
     m_failTime = 0;
     m_finishTime = 0;
     m_placeName = m_setup.placeName;
+    m_lastRangeTick = 0;
 
     if( !m_setup.polygonShapeFile.empty() )
     {
