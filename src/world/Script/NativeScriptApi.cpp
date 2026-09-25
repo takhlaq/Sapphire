@@ -44,27 +44,36 @@ namespace Sapphire::ScriptAPI
     return m_type;
   }
 
-  MechanicScript::MechanicScript( std::string name ) :
-    ScriptObject( mechanicScriptId( name ), typeid( MechanicScript ).hash_code() ),
-    m_name( std::move( name ) )
+  void MechanicScript::update( uint64_t tick, World::Encounter::TimelinePack& pack,
+                               World::Encounter::EncounterPtr pEncounter )
   {
   }
 
-  const std::string& MechanicScript::getName() const
+  MechanicScriptDefinition::MechanicScriptDefinition(
+    std::string name, MechanicFactory factory,
+    std::initializer_list< MechanicFunctionDefinition > functions ) :
+    ScriptObject( mechanicScriptId( name ), typeid( MechanicScriptDefinition ).hash_code() ),
+    m_name( std::move( name ) ),
+    m_factory( factory )
+  {
+    for( const auto& function : functions )
+      m_functions.emplace( function.name, function.handler );
+  }
+
+  const std::string& MechanicScriptDefinition::getName() const
   {
     return m_name;
   }
 
-  bool MechanicScript::call( std::string_view function, const nlohmann::json& args,
-                             World::Encounter::TimelinePack& pack,
-                             World::Encounter::EncounterPtr pEncounter )
+  std::shared_ptr< MechanicScript > MechanicScriptDefinition::createInstance() const
   {
-    return false;
+    return m_factory ? m_factory() : nullptr;
   }
 
-  void MechanicScript::update( uint64_t tick, World::Encounter::TimelinePack& pack,
-                               World::Encounter::EncounterPtr pEncounter )
+  MechanicHandler MechanicScriptDefinition::findFunction( std::string_view name ) const
   {
+    auto it = m_functions.find( std::string( name ) );
+    return it != m_functions.end() ? it->second : nullptr;
   }
 
   ///////////////////////////////////////////////////////////////////

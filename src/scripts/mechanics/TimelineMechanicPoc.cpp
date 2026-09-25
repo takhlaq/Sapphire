@@ -5,9 +5,7 @@
 #include <Encounter/TimelinePack.h>
 #include <Logging/Logger.h>
 
-#include <memory>
 #include <string>
-#include <string_view>
 
 using namespace Sapphire;
 using namespace Sapphire::World::Encounter;
@@ -15,39 +13,22 @@ using namespace Sapphire::World::Encounter;
 class TimelineMechanicPoc : public ScriptAPI::MechanicScript
 {
 public:
-  TimelineMechanicPoc() : MechanicScript( "TimelineMechanicPoc" )
+  void arm( const nlohmann::json& args, TimelinePack& pack, EncounterPtr pEncounter )
   {
+    m_actorRef = args.value( "actor", std::string() );
+    m_intervalMs = args.value( "intervalMs", uint64_t{ 1000 } );
+    m_maxUpdates = args.value( "maxUpdates", uint32_t{ 3 } );
+    m_lastTick = 0;
+    m_updateCount = 0;
+    m_armed = true;
+
+    Logger::info( "TimelineMechanicPoc armed for actor '{}'", m_actorRef );
   }
 
-  std::shared_ptr< MechanicScript > createInstance() const override
+  void disarm( const nlohmann::json& args, TimelinePack& pack, EncounterPtr pEncounter )
   {
-    return std::make_shared< TimelineMechanicPoc >();
-  }
-
-  bool call( std::string_view function, const nlohmann::json& args,
-             TimelinePack& pack, EncounterPtr pEncounter ) override
-  {
-    if( function == "arm" )
-    {
-      m_actorRef = args.value( "actor", std::string() );
-      m_intervalMs = args.value( "intervalMs", uint64_t{ 1000 } );
-      m_maxUpdates = args.value( "maxUpdates", uint32_t{ 3 } );
-      m_lastTick = 0;
-      m_updateCount = 0;
-      m_armed = true;
-
-      Logger::info( "TimelineMechanicPoc armed for actor '{}'", m_actorRef );
-      return true;
-    }
-
-    if( function == "disarm" )
-    {
-      m_armed = false;
-      Logger::info( "TimelineMechanicPoc disarmed" );
-      return true;
-    }
-
-    return false;
+    m_armed = false;
+    Logger::info( "TimelineMechanicPoc disarmed" );
   }
 
   void update( uint64_t tick, TimelinePack& pack, EncounterPtr pEncounter ) override
@@ -86,4 +67,8 @@ private:
   uint32_t m_updateCount{ 0 };
 };
 
-EXPOSE_SCRIPT( TimelineMechanicPoc );
+EXPOSE_MECHANIC_SCRIPT(
+  TimelineMechanicPoc,
+  MECHANIC_FUNCTION( arm ),
+  MECHANIC_FUNCTION( disarm )
+);
