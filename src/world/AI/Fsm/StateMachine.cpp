@@ -21,6 +21,12 @@ AI::Fsm::StatePtr AI::Fsm::StateMachine::getCurrentState()
 
 void AI::Fsm::StateMachine::setCurrentState( Fsm::StatePtr state )
 {
+  if( m_pCurrentState && m_pCurrentState->hasInitialised() )
+  {
+    auto pOwner = m_owner.shared_from_this();
+    m_pCurrentState->onExit( pOwner );
+    m_pCurrentState->setInitialised( false );
+  }
   m_pCurrentState = state;
 }
 

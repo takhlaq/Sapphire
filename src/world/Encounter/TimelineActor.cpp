@@ -190,8 +190,16 @@ namespace Sapphire::World::Encounter
       pActor = pTeri->createBNpcFromLayoutIdNoPush( m_layoutId, 1000, type );
       m_subActors[ name ] = pActor;
 
+      // detach current controller so we can set a new one
+      pActor->detachController();
+
       auto pSubActorController = std::make_unique< AI::Controller::BNpcSubActorController >( *pActor );
-      pActor->setController( std::move( pSubActorController ) );
+
+      if( !pActor->setController( std::move( pSubActorController ) ) )
+      {
+        Logger::debug( "TimelineActor::spawnSubActor: Unable to setController for subactor {}", pActor->getId() );
+        return nullptr;
+      }
 
       pActor->setInvincibilityType( Common::InvincibilityIgnoreDamage );
       pActor->setFlag( flags );

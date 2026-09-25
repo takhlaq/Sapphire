@@ -6,12 +6,14 @@
 
 #include <AI/Fsm/StateFollowPath.h>
 
+#include <Logging/Logger.h>
+
 namespace Sapphire::World::AI::Controller
 {
   BNpcSubActorController::BNpcSubActorController( Entity::BNpc& bnpc ) :
     Controller( bnpc )
   {
-
+    
   }
 
   void BNpcSubActorController::initialize()
