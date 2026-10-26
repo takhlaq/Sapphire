@@ -6,6 +6,7 @@
 #include <Encounter/TimelinePack.h>
 #include <Logging/Logger.h>
 
+#include <set>
 #include <string>
 
 using namespace Sapphire;
@@ -22,6 +23,8 @@ public:
     m_updateCount = 0;
     m_lastUnnaturalRipplesStart = 0;
     m_armed = true;
+
+    m_availableGuards = { 3978770, 3978761, 4064938, 4064937 };
 
     Logger::info( "SastashaUnnaturalRipples armed" );
   }
@@ -67,22 +70,12 @@ public:
         Logger::info( "Unnatural ripples elapsed" );
         Logger::info( "Denn HP {} MaxHP {} HPP {}", pDenn->getHp(), pDenn->getMaxHp(), dennHpp );
 
-        if( dennHpp < 20 )
-        {
-          Logger::info( "HP Breakpoint 20" );
-          if( pack.isPhaseActive( "Unnaturalripples", "Setup Phase" ) )
-          {
-            pack.requestPhaseTransition( "Unnaturalripples", "Bubbles" );
-            sendLogMessage = true;
-          }
-        }
-
         if( dennHpp < 40 )
         {
           Logger::info( "HP Breakpoint 40" );
-          if( pack.isPhaseActive( "Unnaturalripples_1", "Setup Phase" ) )
+          if( !pack.isPhaseActive( "Unnaturalripples_3", "Bubbles" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples_1", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples_3", "Bubbles" );
             sendLogMessage = true;
           }
         }
@@ -90,7 +83,7 @@ public:
         if( dennHpp < 60 )
         {
           Logger::info( "HP Breakpoint 60" );
-          if( pack.isPhaseActive( "Unnaturalripples_2", "Setup Phase" ) )
+          if( !pack.isPhaseActive( "Unnaturalripples_2", "Bubbles" ) )
           {
             pack.requestPhaseTransition( "Unnaturalripples_2", "Bubbles" );
             sendLogMessage = true;
@@ -101,9 +94,15 @@ public:
         {
           Logger::info( "HP Breakpoint 80" );
 
-          if( pack.isPhaseActive( "Unnaturalripples_3", "Setup Phase" ) )
+          if( !pack.isPhaseActive( "Unnaturalripples", "Bubbles" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples_3", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples", "Bubbles" );
+            sendLogMessage = true;
+          }
+
+          if( !pack.isPhaseActive( "Unnaturalripples_1", "Bubbles" ) )
+          {
+            pack.requestPhaseTransition( "Unnaturalripples_1", "Bubbles" );
             sendLogMessage = true;
           }
         }
@@ -128,6 +127,60 @@ public:
       m_armed = false;
   }
 
+  void spawnGuardForEObj( const nlohmann::json& args, TimelinePack& pack, EncounterPtr pEncounter )
+  {
+    if( !m_armed )
+      return;
+
+    if( !pEncounter )
+      return;
+
+    auto& eobjName = args.at( "eobjName" );
+    auto pEObj = pEncounter->getEObjByName( eobjName );
+    if( pEObj )
+    {
+      auto pos = pEObj->getPos();
+      auto rot = pEObj->getRot();
+
+      pos = Common::Util::getOffsettedPosition( pos, rot, 0.f, 0.f, 1.5f );
+      auto pTeri = pEncounter->getTeriPtr();
+
+      auto tmpAvailable = m_availableGuards;
+      for( auto guardId : tmpAvailable )
+      {
+        auto pGuard = pEncounter->getBNpc( guardId );
+        bool createBNpc = false;
+        if( pGuard )
+        {
+          if( !pGuard->isAlive() )
+          {
+            pTeri->removeActor( pGuard );
+            createBNpc = true;
+          }
+        }
+        else
+        {
+          createBNpc = true;
+        }
+
+        if( createBNpc )
+        {
+          // todo: use correct hp values
+          pGuard = pTeri->createBNpcFromLayoutIdNoPush( guardId, 319, Common::BNpcType::Enemy, 0 );
+          if( pGuard )
+          {
+            pEncounter->addBNpc( pGuard, pEncounter->getLockoutTime() != 0 );
+            pGuard->setRot( rot );
+            pGuard->setPos( pos );
+            pGuard->init();
+            pTeri->pushActor( pGuard );
+            return;
+          }
+        }
+      }
+    }
+  }
+
 private:
   bool m_armed{ false };
 
@@ -136,10 +189,12 @@ private:
   uint64_t m_lastUnnaturalRipplesStart{ 0 };
   uint32_t m_maxUpdates{ 0 };
   uint32_t m_updateCount{ 0 };
+  std::set< uint32_t > m_availableGuards;
 };
 
 EXPOSE_MECHANIC_SCRIPT(
   SastashaUnnaturalRipples,
   MECHANIC_FUNCTION( arm ),
-  MECHANIC_FUNCTION( disarm )
+  MECHANIC_FUNCTION( disarm ),
+  MECHANIC_FUNCTION( spawnGuardForEObj ),
 );

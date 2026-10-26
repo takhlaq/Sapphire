@@ -116,6 +116,8 @@ namespace Sapphire::World::Encounter
 
     void requestPhaseTransition( const std::string& actorRef, const std::string& phaseName );
 
+    uint64_t getPhaseElapsed( const std::string& actorRef ) const;
+
     static TimeLinePackPtr createTimelinePack( const std::string& name );
   };
 

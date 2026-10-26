@@ -449,20 +449,17 @@
                   "type": "logMessage"
                 },
                 {
-                  "data": {
-                    "flags": 289,
-                    "flagsMask": 4294967295,
-                    "hateSource": {
-                      "hateType": "<to-be-defined>",
-                      "source": "<to-de-befined>"
-                    },
-                    "invulnType": null,
-                    "spawnActor": "Baleen Guard"
-                  },
-                  "description": "",
                   "id": 5,
+                  "type": "mechanic",
                   "startTime": 8000,
-                  "type": "bNpcSpawn"
+                  "description": "Unnatural Ripples",
+                  "data": {
+                    "instance": "ripples",
+                    "function": "spawnGuardForEObj",
+                    "args": {
+                      "eobjName": "Unnaturalripples"
+                    }
+                  }
                 }
               ]
             }
@@ -644,20 +641,17 @@
                   "type": "logMessage"
                 },
                 {
-                  "data": {
-                    "flags": 289,
-                    "flagsMask": 4294967295,
-                    "hateSource": {
-                      "hateType": "<to-be-defined>",
-                      "source": "<to-de-befined>"
-                    },
-                    "invulnType": null,
-                    "spawnActor": "Baleen Guard (LID 3978761)"
-                  },
-                  "description": "",
                   "id": 5,
+                  "type": "mechanic",
                   "startTime": 8000,
-                  "type": "bNpcSpawn"
+                  "description": "Unnatural Ripples",
+                  "data": {
+                    "instance": "ripples",
+                    "function": "spawnGuardForEObj",
+                    "args": {
+                      "eobjName": "Unnaturalripples_1"
+                    }
+                  }
                 }
               ]
             }
@@ -851,20 +845,17 @@
                   "type": "logMessage"
                 },
                 {
-                  "data": {
-                    "flags": 289,
-                    "flagsMask": 4294967295,
-                    "hateSource": {
-                      "hateType": "<to-be-defined>",
-                      "source": "<to-de-befined>"
-                    },
-                    "invulnType": null,
-                    "spawnActor": "Baleen Guard (LID 4064938)"
-                  },
-                  "description": "",
                   "id": 5,
+                  "type": "mechanic",
                   "startTime": 8000,
-                  "type": "bNpcSpawn"
+                  "description": "Unnatural Ripples",
+                  "data": {
+                    "instance": "ripples",
+                    "function": "spawnGuardForEObj",
+                    "args": {
+                      "eobjName": "Unnaturalripples_2"
+                    }
+                  }
                 }
               ]
             }
@@ -1034,20 +1025,17 @@
                   "type": "logMessage"
                 },
                 {
-                  "data": {
-                    "flags": 289,
-                    "flagsMask": 4294967295,
-                    "hateSource": {
-                      "hateType": "<to-be-defined>",
-                      "source": "<to-de-befined>"
-                    },
-                    "invulnType": null,
-                    "spawnActor": "Baleen Guard (LID 4064937)"
-                  },
-                  "description": "",
                   "id": 5,
+                  "type": "mechanic",
                   "startTime": 8000,
-                  "type": "bNpcSpawn"
+                  "description": "Unnatural Ripples",
+                  "data": {
+                    "instance": "ripples",
+                    "function": "spawnGuardForEObj",
+                    "args": {
+                      "eobjName": "Unnaturalripples_3"
+                    }
+                  }
                 }
               ]
             }

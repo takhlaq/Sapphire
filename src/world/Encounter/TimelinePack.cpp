@@ -596,4 +596,12 @@ namespace Sapphire::World::Encounter
       }
     }
   }
+
+  uint64_t TimelinePack::getPhaseElapsed( const std::string& actorRef ) const
+  {
+    for( const auto& actor : m_timelineActors )
+      if( actor.getName() == actorRef )
+        return actor.getPhaseElapsed();
+    return 0;
+  }
 }// namespace Sapphire::Encounter
