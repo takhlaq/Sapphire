@@ -563,9 +563,9 @@ namespace Sapphire::World::Encounter
           //if( !pAction || pAction->isInterrupted() )
           {
             if( pActionData->m_targetType == ActionTargetType::SelectorPos )
-              actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pos, pTeri->getNextActionResultId(), targetId );
+              actionMgr.handlePlacedAction( *pBNpc, pActionData->m_actionId, pos, 0, targetId );
             else
-              actionMgr.handleTargetedAction( *pBNpc, pActionData->m_actionId, targetId, pTeri->getNextActionResultId() );
+              actionMgr.handleTargetedAction( *pBNpc, pActionData->m_actionId, targetId, 0 );
           }
         }
       }
@@ -976,12 +976,6 @@ namespace Sapphire::World::Encounter
           pBNpc->resetFlags( flags );
           pBNpc->setInvincibilityType( static_cast< Common::InvincibilityType >( pBNpcFlagData->m_invincibilityType ) );
 
-          // todo: find and use possible actrl for updating flags?
-          for( auto& pPlayer : pEncounter->getPlayers() )
-          {
-            pBNpc->despawn( pPlayer );
-            pBNpc->spawn( pPlayer );
-          }
           // todo: resend some bnpc packet/actrl?
         }
       }
@@ -1084,9 +1078,9 @@ namespace Sapphire::World::Encounter
             auto pDirector = pEncounter->getDirector();
 
             if( pInstance )
-              pInstance->setVar( pRNGData->m_idx, val );
+              pInstance->setCustomVar( pRNGData->m_idx, val );
             else if( pQuestBattle )
-              pQuestBattle->setVar( pRNGData->m_idx, val );
+              pQuestBattle->setCustomVar( pRNGData->m_idx, val );
             else if( pDirector )
               pDirector->setDirectorVar( pRNGData->m_idx, val );
           }
