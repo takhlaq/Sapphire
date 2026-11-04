@@ -1235,6 +1235,21 @@ void DebugCommandMgr::instance( char* data, Entity::Player& player, std::shared_
     }
     instance->setVar( static_cast< uint8_t >( index ), static_cast< uint8_t >( value ) );
   }
+  else if( subCommand == "setCustomVar" )
+  {
+    auto instance = std::dynamic_pointer_cast< InstanceContent >( pCurrentZone );
+    if( !instance )
+      return;
+
+    uint32_t index{};
+    uint64_t value{};
+    if( sscanf( params.c_str(), "%u %llu", &index, &value ) != 2 )
+    {
+      PlayerMgr::sendDebug( player, "Usage: set <index> <value>" );
+      return;
+    }
+    instance->setCustomVar( index, value );
+  }
   else if( subCommand == "permissionInvisibility" )
   {
     char objName[128];

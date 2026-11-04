@@ -12,6 +12,7 @@
 #include <nlohmann/json.hpp>
 #include "ForwardsZone.h"
 #include "Event/EventHandler.h"
+#include "Manager/ActionMgr.h"
 #include "Manager/EventMgr.h"
 #include "Manager/LinkshellMgr.h"
 #include "Manager/PlayerMgr.h"
@@ -93,6 +94,11 @@ namespace Sapphire::ScriptAPI
     World::Manager::TerritoryMgr& teriMgr()
     {
       return Common::Service< World::Manager::TerritoryMgr >::ref();
+    }
+
+    World::Manager::ActionMgr& actionMgr()
+    {
+      return Common::Service< World::Manager::ActionMgr >::ref();
     }
   };
 

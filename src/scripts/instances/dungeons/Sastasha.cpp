@@ -202,10 +202,10 @@ public:
       { "sgpl_s1d1_bosswall", 2001508, 4236989, 4036045, 4, { -303.983612f, 5.576412f, 276.214111f }, 1.000000f, 0.000000f, 1, 0, false, EncounterEntityRemoveFlag::OnSuccess }
     };
     def.onInitEObjList = {
-            { "Unnaturalripples", 2000405, 3992454, 3741845, 4, { -301.973206f, 6.500000f, 300.029388f }, 0.991789f, 0.000048f, 0, 0, false, EncounterEntityRemoveFlag::None },
-            { "Unnaturalripples_1", 2000406, 3992452, 3741894, 4, { -302.037598f, 6.500000f, 336.047302f }, 1.000000f, 0.000000f, 0, 0, false, EncounterEntityRemoveFlag::None },
-            { "Unnaturalripples_2", 2000407, 3992449, 3741895, 4, { -338.036499f, 6.500000f, 300.206512f }, 0.991789f, 0.000048f, 0, 0, false, EncounterEntityRemoveFlag::None },
-            { "Unnaturalripples_3", 2000408, 3992453, 3741897, 4, { -337.929596f, 6.500000f, 335.975311f }, 1.000000f, 0.000000f, 0, 0, false, EncounterEntityRemoveFlag::None }
+            { "Unnaturalripples", 2000405, 3992454, 3741845, 4, { -301.973206f, 6.500000f, 300.029388f }, 0.991789f, 0.000048f, 0, 10, false, EncounterEntityRemoveFlag::None },
+            { "Unnaturalripples_1", 2000406, 3992452, 3741894, 4, { -302.037598f, 6.500000f, 336.047302f }, 1.000000f, 0.000000f, 0, 10, false, EncounterEntityRemoveFlag::None },
+            { "Unnaturalripples_2", 2000407, 3992449, 3741895, 4, { -338.036499f, 6.500000f, 300.206512f }, 0.991789f, 0.000048f, 0, 10, false, EncounterEntityRemoveFlag::None },
+            { "Unnaturalripples_3", 2000408, 3992453, 3741897, 4, { -337.929596f, 6.500000f, 335.975311f }, 1.000000f, 0.000000f, 0, 10, false, EncounterEntityRemoveFlag::None }
     };
 
     def.hasLockout = true;
@@ -513,7 +513,6 @@ public:
                                     eobj.setPermissionInvisibility( 1 );
                                     instance.setVar( 0, Seq5 );
                                     instance.sendEventLogMessage( player, instance, 2031, { 2000513 } );
-                                    //denn = instance.createBNpcFromLayoutId( 3978771, 1000, Common::BNpcType::Enemy );
                                   },
                                   nullptr, getId() );
     }
@@ -562,12 +561,19 @@ public:
       constexpr uint32_t ANIMFLAG_STOP_BUBBLE = 0x08;
 
       auto pTimeline = pEncounter->getTimelinePack();
+
       // todo: map the correct eobj to the guard bnpc
+
+      // handle ripples talk. only play the action if bubbling
       if( pTimeline->isPhaseActive( name, "Bubbles" ) )
-        pTimeline->requestPhaseTransition( name, "Bubbles Interrupt" );
-      
-      
-      if( pTimeline->isPhaseActive( name, "Setup Phase" ) )
+      {
+        eventMgr().eventActionStart( player, getId(), EventActionTouch, [ pTimeline, name ]( Entity::Player& player, uint32_t eventId, uint64_t additional ) {
+          if( pTimeline->isPhaseActive( name, "Bubbles" ) )
+            pTimeline->requestPhaseTransition( name, "Bubbles Interrupt" );
+        }, nullptr, getId() );
+      }
+      // no bubbles
+      else if( pTimeline->isPhaseActive( name, "Setup Phase" ) )
       {
         playerMgr().sendLogMessage( player, 2039 ); // There is nothing out of the ordinary.
       }

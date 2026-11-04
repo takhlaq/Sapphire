@@ -140,7 +140,12 @@ public:
     if( pEObj )
     {
       auto pos = pEObj->getPos();
-      auto rot = pEObj->getRot();
+      auto rot = -1.5f;
+
+      if( eobjName == "Unnaturalripples" || eobjName == "Unnaturalripples_1" )
+        rot = -1.5f;
+      else
+        rot = 1.5f;
 
       pos = Common::Util::getOffsettedPosition( pos, rot, 0.f, 0.f, 1.5f );
       auto pTeri = pEncounter->getTeriPtr();
@@ -154,6 +159,7 @@ public:
         {
           if( !pGuard->isAlive() )
           {
+            pEncounter->removeBNpc( guardId );
             pTeri->removeActor( pGuard );
             createBNpc = true;
           }
@@ -174,6 +180,9 @@ public:
             pGuard->setPos( pos );
             pGuard->init();
             pTeri->pushActor( pGuard );
+
+            // cast ambuscade
+            actionMgr().handleTargetedAction( *pGuard, 835, guardId, 0 );
             return;
           }
         }
