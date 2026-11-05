@@ -6,6 +6,7 @@
 #include <Encounter/TimelinePack.h>
 #include <Logging/Logger.h>
 
+#include <array>
 #include <set>
 #include <string>
 
@@ -53,7 +54,7 @@ public:
       return;
 
     auto pDenn = pack.getBNpcByRef( "Denn The Orcatoothed", pEncounter );
-    if( pDenn && pDenn->getState() == Entity::BNpcState::Combat )
+    if( pDenn && pDenn->getState() == Entity::BNpcState::Combat && !m_availableGuards.empty() )
     {
       auto dennHpp = pDenn->getHpPercent();
       bool sendLogMessage = false;
@@ -61,48 +62,48 @@ public:
       if( m_lastUnnaturalRipplesStart == 0 )
       {
         Logger::info( "Unnatural ripples last start time 0" );
-        m_lastUnnaturalRipplesStart = tick;
       }
 
       auto elapsed = tick - m_lastUnnaturalRipplesStart;
       if( elapsed > 12000 )
       {
-        Logger::info( "Unnatural ripples elapsed" );
-        Logger::info( "Denn HP {} MaxHP {} HPP {}", pDenn->getHp(), pDenn->getMaxHp(), dennHpp );
+        // Logger::info( "Unnatural ripples elapsed" );
+        // Logger::info( "Denn HP {} MaxHP {} HPP {}", pDenn->getHp(), pDenn->getMaxHp(), dennHpp );
 
         if( dennHpp < 40 )
         {
-          Logger::info( "HP Breakpoint 40" );
-          if( !pack.isPhaseActive( "Unnaturalripples_3", "Bubbles" ) )
+          // Logger::info( "HP Breakpoint 40" );
+
+          if( pack.isPhaseActive( "Unnaturalripples", "Setup Phase" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples_3", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples", "Bubbles" );
             sendLogMessage = true;
           }
         }
 
         if( dennHpp < 60 )
         {
-          Logger::info( "HP Breakpoint 60" );
-          if( !pack.isPhaseActive( "Unnaturalripples_2", "Bubbles" ) )
+          // Logger::info( "HP Breakpoint 60" );
+          if( pack.isPhaseActive( "Unnaturalripples_1", "Setup Phase" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples_2", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples_1", "Bubbles" );
             sendLogMessage = true;
           }
         }
 
         if( dennHpp < 80 )
         {
-          Logger::info( "HP Breakpoint 80" );
+          // Logger::info( "HP Breakpoint 80" );
 
-          if( !pack.isPhaseActive( "Unnaturalripples", "Bubbles" ) )
+          if( pack.isPhaseActive( "Unnaturalripples_2", "Setup Phase" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples_2", "Bubbles" );
             sendLogMessage = true;
           }
 
-          if( !pack.isPhaseActive( "Unnaturalripples_1", "Bubbles" ) )
+          if( pack.isPhaseActive( "Unnaturalripples_3", "Setup Phase" ) )
           {
-            pack.requestPhaseTransition( "Unnaturalripples_1", "Bubbles" );
+            pack.requestPhaseTransition( "Unnaturalripples_3", "Bubbles" );
             sendLogMessage = true;
           }
         }
@@ -113,12 +114,19 @@ public:
           {
             playerMgr().sendLogMessage( *pPlayer, 2040 );
           }
-          Logger::info( "Unnatural ripples started bubbling" );
+          // Logger::info( "Unnatural ripples started bubbling" );
           m_lastUnnaturalRipplesStart = tick;
         }
       }
 
     }
+
+    constexpr std::array< const char*, 4 > eobjNames = { "Unnaturalripples", "Unnaturalripples_1", "Unnaturalripples_2", "Unnaturalripples_3" };
+    // no more guards to spawn, stop bubbling
+    if( m_availableGuards.empty() )
+      for( const auto& name : eobjNames )
+        if( pack.isPhaseActive( name, "Bubbles" ) )
+          pack.requestPhaseTransition( name, "Bubbles Interrupt" );
 
     m_lastTick = tick;
     ++m_updateCount;
@@ -133,6 +141,13 @@ public:
       return;
 
     if( !pEncounter )
+      return;
+
+    if( m_availableGuards.empty() )
+      return;
+
+    auto pDenn = pack.getBNpcByRef( "Denn The Orcatoothed", pEncounter );
+    if( !pDenn || !pDenn->isAlive() )
       return;
 
     auto& eobjName = args.at( "eobjName" );
@@ -175,6 +190,8 @@ public:
           pGuard = pTeri->createBNpcFromLayoutIdNoPush( guardId, 319, Common::BNpcType::Enemy, 0 );
           if( pGuard )
           {
+            m_availableGuards.erase( guardId );
+
             pEncounter->addBNpc( pGuard, pEncounter->getLockoutTime() != 0 );
             pGuard->setRot( rot );
             pGuard->setPos( pos );
@@ -182,8 +199,14 @@ public:
             pTeri->pushActor( pGuard );
 
             // cast ambuscade
-            actionMgr().handleTargetedAction( *pGuard, 835, guardId, 0 );
-            return;
+            actionMgr().handleTargetedAction( *pGuard, 835, pGuard->getId(), 0 );
+
+            for( auto& pPlayer : pEncounter->getPlayersInside() )
+            {
+              playerMgr().sendLogMessage( *pPlayer, 2042, 1207 );// A Baleen Guard appears!
+              pGuard->aggro( pPlayer );
+            }
+            break;
           }
         }
       }

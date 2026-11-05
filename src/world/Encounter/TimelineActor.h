@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <map>
 #include <unordered_map>
 
@@ -75,6 +76,8 @@ namespace Sapphire::World::Encounter
     PhasePtr getPhaseByName( const std::string& phaseName );
 
     uint64_t getPhaseElapsed() const;
+
+    std::string_view getPhaseName() const;
 
     // todo: make this sane
     void update( EncounterPtr pEncounter, TimelinePack& pack, uint64_t time );

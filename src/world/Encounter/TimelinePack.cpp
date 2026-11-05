@@ -604,4 +604,13 @@ namespace Sapphire::World::Encounter
         return actor.getPhaseElapsed();
     return 0;
   }
+
+  std::string_view TimelinePack::getPhaseName( const std::string& actorRef ) const
+  {
+    for( const auto& actor : m_timelineActors )
+      if( actor.getName() == actorRef )
+        return actor.getPhaseName();
+
+    return "";
+  }
 }// namespace Sapphire::Encounter

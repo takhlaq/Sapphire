@@ -7,6 +7,7 @@
 #include <stack>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -117,6 +118,8 @@ namespace Sapphire::World::Encounter
     void requestPhaseTransition( const std::string& actorRef, const std::string& phaseName );
 
     uint64_t getPhaseElapsed( const std::string& actorRef ) const;
+
+    std::string_view getPhaseName( const std::string& actorRef ) const;
 
     static TimeLinePackPtr createTimelinePack( const std::string& name );
   };

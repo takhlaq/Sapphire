@@ -100,6 +100,14 @@ namespace Sapphire::World::Encounter
     return elapsed;
   }
 
+  std::string_view TimelineActor::getPhaseName() const
+  {
+    if( m_pPhase )
+      return m_pPhase->getName();
+
+    return "";
+  }
+
   void TimelineActor::update(  EncounterPtr pEncounter, TimelinePack& pack, uint64_t time )
   {
     // todo: handle interrupts
