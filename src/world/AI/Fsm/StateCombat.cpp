@@ -65,13 +65,18 @@ void AI::Fsm::StateCombat::onUpdate( Entity::GameObjectPtr& pEntity, uint64_t ti
     // todo: use status flags here instead of bnpc flags?
     if( !bnpc.hasFlag( Entity::NoDeaggro ) )
     {
-      if( bnpc.hasFlag( Entity::Immobile ) && distance > 40.0f )
+      auto pInstance = pZone->getAsInstanceContent();
+      // dungeon mobs dont spawn leash
+      if( !pInstance )
       {
-        bnpc.deaggro( pHatedActor );
-      }
-      else if( distance > 80.0f )
-      {
-        bnpc.deaggro( pHatedActor );
+        if( bnpc.hasFlag( Entity::Immobile ) && distance > 40.0f )
+        {
+          bnpc.deaggro( pHatedActor );
+        }
+        else if( distance > 80.0f )
+        {
+          bnpc.deaggro( pHatedActor );
+        }
       }
     }
     if( bnpc.getBoundEncounterId() != pHatedActor->getBoundEncounterId() )

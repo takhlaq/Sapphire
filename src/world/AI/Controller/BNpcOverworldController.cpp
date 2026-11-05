@@ -102,7 +102,11 @@ namespace Sapphire::World::AI::Controller
       if( !pBNpc->hasFlag( Entity::BNpcFlag::NoDeaggro ) )
       {
         auto stateRetreat = make_StateRetreat();
-        stateCombat->addTransition( stateRetreat, make_SpawnPointDistanceGtMaxDistanceCondition() );
+
+        // todo: move this to BNpcInstancedContentController or something
+        if( pZone->getAsInstanceContent() == nullptr )
+          stateCombat->addTransition( stateRetreat, make_SpawnPointDistanceGtMaxDistanceCondition() );
+
         stateCombat->addTransition( stateRetreat, make_HateListEmptyCondition() );
         stateRetreat->addTransition( stateIdle, make_RoamTargetReachedCondition() );
       }

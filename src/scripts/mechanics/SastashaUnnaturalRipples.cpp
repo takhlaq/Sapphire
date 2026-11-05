@@ -26,6 +26,7 @@ public:
     m_armed = true;
 
     m_availableGuards = { 3978770, 3978761, 4064938, 4064937 };
+    m_ambuscadeQueue = {};
 
     Logger::info( "SastashaUnnaturalRipples armed" );
   }
@@ -128,6 +129,13 @@ public:
         if( pack.isPhaseActive( name, "Bubbles" ) )
           pack.requestPhaseTransition( name, "Bubbles Interrupt" );
 
+    if( !m_ambuscadeQueue.empty() )
+    {
+      for( auto guardId : m_ambuscadeQueue )
+        if( auto pGuard = pEncounter->getBNpc( guardId ); pGuard->isAlive() )
+          actionMgr().handleTargetedAction( *pGuard, 835, pGuard->getId(), 0 );
+      m_ambuscadeQueue.clear();
+    }
     m_lastTick = tick;
     ++m_updateCount;
 
@@ -162,7 +170,7 @@ public:
       else
         rot = 1.5f;
 
-      pos = Common::Util::getOffsettedPosition( pos, rot, 0.f, 0.f, 1.5f );
+      pos = Common::Util::getOffsettedPosition( pos, rot, 0.f, 0.f, 2.5f );
       auto pTeri = pEncounter->getTeriPtr();
 
       auto tmpAvailable = m_availableGuards;
@@ -198,6 +206,7 @@ public:
             pGuard->init();
             pTeri->pushActor( pGuard );
 
+            m_ambuscadeQueue.insert( guardId );
             // cast ambuscade
             actionMgr().handleTargetedAction( *pGuard, 835, pGuard->getId(), 0 );
 
@@ -222,6 +231,7 @@ private:
   uint32_t m_maxUpdates{ 0 };
   uint32_t m_updateCount{ 0 };
   std::set< uint32_t > m_availableGuards;
+  std::set< uint32_t > m_ambuscadeQueue;
 };
 
 EXPOSE_MECHANIC_SCRIPT(
