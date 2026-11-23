@@ -460,6 +460,11 @@ uint8_t Player::getSpawnIdForActorId( uint32_t actorId )
   return index;
 }
 
+bool Player::hasActorSpawned( uint32_t actorId ) const
+{
+  return m_actorSpawnIndexAllocator.hasSpawnIndex( actorId );
+}
+
 bool Player::isActorSpawnIdValid( uint8_t spawnIndex )
 {
   return m_actorSpawnIndexAllocator.isSpawnIndexValid( spawnIndex );

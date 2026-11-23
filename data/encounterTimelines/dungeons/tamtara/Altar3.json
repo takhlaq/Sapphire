@@ -1,0 +1,61 @@
+{
+  "name": "Altar3",
+  "version": 30,
+  "actors": [
+    {
+      "id": 1,
+      "name": "Altar guard",
+      "type": "bnpc",
+      "layoutId": 1334960,
+      "hp": 516,
+      "initialPhaseId": 1,
+      "subactors": [],
+      "phases": [
+        {
+          "id": 1,
+          "name": "Altar guards",
+          "onEnter": [],
+          "onExit": [],
+          "schedules": [],
+          "triggers": [
+            {
+              "id": 1,
+              "enabled": true,
+              "description": "Summon the Soulcounter when the guards fall",
+              "condition": "encounterGroupDefeated",
+              "paramData": {
+                "group": "required",
+                "count": 5
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 2
+              }
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Void Soulcounter",
+          "onEnter": [
+            {
+              "id": 1,
+              "type": "bNpcSpawn",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "layoutId": 3859984,
+                "hp": 4128,
+                "revealDelay": 500
+              }
+            }
+          ],
+          "onExit": [],
+          "schedules": [],
+          "triggers": []
+        }
+      ]
+    }
+  ],
+  "selectors": []
+}

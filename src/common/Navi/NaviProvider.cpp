@@ -1058,7 +1058,7 @@ void Sapphire::Common::Navi::NaviProvider::removeAgentUpdateFlag( int32_t naviAg
 }
 
 void Sapphire::Common::Navi::NaviProvider::toggleBox( dtObstacleRef& obstacleRef, const Common::Vector3& pos,
-                                                       const Common::Vector3& halfExtents, float rot, bool enabled )
+                                                       const Common::Vector3& halfExtents, float rot, bool enabled, bool blockAllAgents )
 {
   const float cellSize = m_tileCache->getParams()->cs;
   const float minHalfThickness = cellSize * 2.0f;
@@ -1077,7 +1077,8 @@ void Sapphire::Common::Navi::NaviProvider::toggleBox( dtObstacleRef& obstacleRef
 
   if( enabled && obstacleRef == 0 )
   {
-    auto status = m_tileCache->addBoxObstacle( fpos, fhalfExtents, rot, &obstacleRef, AREA_DOOR );
+    unsigned char area = blockAllAgents ? DT_TILECACHE_NULL_AREA : static_cast< unsigned char >( AREA_DOOR );
+    auto status = m_tileCache->addBoxObstacle( fpos, fhalfExtents, rot, &obstacleRef, area );
     if( dtStatusFailed( status ) )
       Logger::error( "[Navmesh] addBoxObstacle failed (request queue full?) at X:{} Y:{} Z:{}",
                      pos.x, pos.y, pos.z );

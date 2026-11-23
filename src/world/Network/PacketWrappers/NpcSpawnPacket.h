@@ -61,7 +61,8 @@ namespace Sapphire::Network::Packets::WorldPackets::Server
       // no idea ... m_data.spawnerId = Common::INVALID_GAME_OBJECT_ID64;
       m_data.ParentId = Common::INVALID_GAME_OBJECT_ID;
       m_data.TriggerId = bnpc.getTriggerOwnerId();
-      m_data.ChannelingTarget = Common::INVALID_GAME_OBJECT_ID;
+      m_data.Channeling = bnpc.getChanneling();
+      m_data.ChannelingTarget = bnpc.getChannelingTargetId();
       m_data.OwnerId = Common::INVALID_GAME_OBJECT_ID;
 
       //m_data.u23 = 0x04;
@@ -77,7 +78,10 @@ namespace Sapphire::Network::Packets::WorldPackets::Server
       m_data.NpcId = bnpc.getBNpcBaseId();
       m_data.NameId = bnpc.getBNpcNameId();
 
-      // todo: map out flags
+      if( bnpc.getStance() == Common::Stance::Active )
+        m_data.Flag |= 0x01;
+      if( bnpc.getState() == Entity::BNpcState::Combat )
+        m_data.Flag |= 0x02;
       if( bnpc.hasFlag( Entity::BNpcFlag::Untargetable ) )
         m_data.Flag |= 0x08;
 
@@ -99,7 +103,8 @@ namespace Sapphire::Network::Packets::WorldPackets::Server
 
       if( !target.isActorSpawnIdValid( m_data.Index ) )
         return;
-      // 0x20 == spawn hidden to be displayed by the spawneffect control
+      if( bnpc.isAwaitingSpawnReveal() )
+        m_data.Flag |= 0x20;
       //m_data.displayFlags = bnpc.getDisplayFlags();
 
       //m_data.currentMount = bnpc.getCurrentMount();

@@ -174,9 +174,14 @@ public:
     {
       auto a1 = instance.createBNpcFromLayoutId( INIT_POP_01_01, 100, Common::BNpcType::Enemy );
       auto a2 = instance.createBNpcFromLayoutId( INIT_POP_01_02, 100, Common::BNpcType::Enemy );
+      if( !a1 || !a2 )
+        return;
 
       a1->setFlag( Entity::NoDeaggro );
       a2->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a1 );
+      instance.pushActor( a2 );
 
       a1->hateListAdd( pPlayer, 1 );
       a2->hateListAdd( pPlayer, 1 );
@@ -190,11 +195,18 @@ public:
       auto a4 = instance.createBNpcFromLayoutId( INIT_POP_02_02, 150, Common::BNpcType::Enemy );
       auto a5 = instance.createBNpcFromLayoutId( INIT_POP_02_03, 100, Common::BNpcType::Enemy );
       auto a6 = instance.createBNpcFromLayoutId( INIT_POP_02_04, 100, Common::BNpcType::Enemy );
+      if( !a3 || !a4 || !a5 || !a6 )
+        return;
 
       a3->setFlag( Entity::NoDeaggro );
       a4->setFlag( Entity::NoDeaggro );
       a5->setFlag( Entity::NoDeaggro );
       a6->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a3 );
+      instance.pushActor( a4 );
+      instance.pushActor( a5 );
+      instance.pushActor( a6 );
 
       a3->hateListAdd( pPlayer, 1 );
       a4->hateListAdd( pPlayer, 1 );
@@ -238,9 +250,14 @@ public:
   {
     auto boss = instance.createBNpcFromLayoutId( INIT_POP_BOSS, 2000, Common::BNpcType::Enemy );
     auto ysthola = instance.createBNpcFromLayoutId( INIT_P_POP_01, 27780, Common::BNpcType::Friendly );
+    if( !boss || !ysthola )
+      return;
     
     boss->setFlag( Entity::NoDeaggro );
     ysthola->setFlag( Entity::NoDeaggro );
+
+    instance.pushActor( boss );
+    instance.pushActor( ysthola );
 
     boss->hateListAdd( ysthola, 10000 );
     boss->hateListAdd( player.getAsPlayer(), 1 );

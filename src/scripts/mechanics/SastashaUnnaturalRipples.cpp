@@ -195,7 +195,7 @@ public:
         if( createBNpc )
         {
           // todo: use correct hp values
-          pGuard = pTeri->createBNpcFromLayoutIdNoPush( guardId, 319, Common::BNpcType::Enemy, 0 );
+          pGuard = pTeri->createBNpcFromLayoutId( guardId, 319, Common::BNpcType::Enemy, 0 );
           if( pGuard )
           {
             m_availableGuards.erase( guardId );

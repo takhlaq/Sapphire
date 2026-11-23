@@ -490,6 +490,7 @@ namespace Sapphire::Entity
 
     /*! get the spawn id mapped to a specific actorId */
     uint8_t getSpawnIdForActorId( uint32_t actorId );
+    bool hasActorSpawned( uint32_t actorId ) const;
 
     /*! frees the spawnId assigned to the given actor */
     void freePlayerSpawnId( uint32_t actorId );

@@ -171,7 +171,7 @@ namespace Sapphire::Common::Navi
     std::string getNaviPath() const { return m_naviPath; }
 
     // halfExtents: { width, height, depth } 
-    void toggleBox( dtObstacleRef& doorRef, const Common::Vector3& pos, const Common::Vector3& halfExtents, float rot, bool enabled );
+    void toggleBox( dtObstacleRef& doorRef, const Common::Vector3& pos, const Common::Vector3& halfExtents, float rot, bool enabled, bool blockAllAgents = false );
     void toggleObstacle( dtObstacleRef& obstacleRef, const Common::Vector3& pos, float radius, float height, bool enabled );
     bool hasLineOfSight( const Common::Vector3& startPos, const Common::Vector3& endPos );
 

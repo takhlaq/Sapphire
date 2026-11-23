@@ -106,6 +106,10 @@ private:
       auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
 
       auto enemy4 = instance->createBNpcFromLayoutId( Enemy4, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy4 )
+        return;
+
+      instance->pushActor( enemy4 );
 
       enemy4->hateListAdd( player.getAsPlayer(), 1 );
     }
@@ -173,6 +177,13 @@ private:
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
     auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
     auto enemy3 = instance->createBNpcFromLayoutId( Enemy3, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy0 || !enemy1 || !enemy2 || !enemy3 )
+      return;
+
+    instance->pushActor( enemy0 );
+    instance->pushActor( enemy1 );
+    instance->pushActor( enemy2 );
+    instance->pushActor( enemy3 );
 
     enemy0->hateListAdd( player.getAsPlayer(), 1 );
     enemy1->hateListAdd( player.getAsPlayer(), 1 );

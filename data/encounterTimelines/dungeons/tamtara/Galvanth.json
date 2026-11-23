@@ -1,0 +1,965 @@
+{
+  "name": "Galvanth the Dominator",
+  "version": 30,
+  "actors": [
+    {
+      "id": 1,
+      "name": "Galvanth",
+      "type": "bnpc",
+      "layoutId": 1332316,
+      "hp": 6329,
+      "initialPhaseId": 1,
+      "subactors": [],
+      "phases": [
+        {
+          "id": 1,
+          "name": "Opening",
+          "onEnter": [],
+          "onExit": [],
+          "triggers": [
+            {
+              "id": 1,
+              "description": "Summon reinforcements at 80% HP",
+              "enabled": true,
+              "condition": "hpPctBetween",
+              "paramData": {
+                "sourceActor": "Galvanth",
+                "hpMin": 0,
+                "hpMax": 80
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 2
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "First reinforcements",
+          "onEnter": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 3
+              },
+              "id": 2
+            }
+          ],
+          "onExit": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 0
+              },
+              "id": 1
+            }
+          ],
+          "triggers": [
+            {
+              "id": 2,
+              "description": "Resume combat after the protecting imps fall",
+              "enabled": true,
+              "condition": "encounterGroupDefeated",
+              "paramData": {
+                "group": "Wave 1 imps",
+                "count": 1
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 3
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 3,
+              "name": "First reinforcements",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 2029064,
+                    "hp": 516,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    },
+                    "channeling": {
+                      "id": 1,
+                      "targetActor": "Galvanth"
+                    },
+                    "group": "Wave 1 imps"
+                  },
+                  "id": 1
+                }
+              ]
+            },
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "After the first wave",
+          "onEnter": [],
+          "onExit": [],
+          "triggers": [
+            {
+              "id": 3,
+              "description": "Summon reinforcements at 60% HP",
+              "enabled": true,
+              "condition": "hpPctBetween",
+              "paramData": {
+                "sourceActor": "Galvanth",
+                "hpMin": 0,
+                "hpMax": 60
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 4
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "name": "Second reinforcements",
+          "onEnter": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 3
+              },
+              "id": 5
+            }
+          ],
+          "onExit": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 0
+              },
+              "id": 1
+            }
+          ],
+          "triggers": [
+            {
+              "id": 4,
+              "description": "Resume combat after the protecting imps fall",
+              "enabled": true,
+              "condition": "encounterGroupDefeated",
+              "paramData": {
+                "group": "Wave 2 imps",
+                "count": 1
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 5
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 3,
+              "name": "Second reinforcements",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 2029064,
+                    "hp": 516,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    },
+                    "channeling": {
+                      "id": 1,
+                      "targetActor": "Galvanth"
+                    },
+                    "group": "Wave 2 imps"
+                  },
+                  "id": 1
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334975,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 2
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334968,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 3
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334967,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 4
+                }
+              ]
+            },
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "name": "After the second wave",
+          "onEnter": [],
+          "onExit": [],
+          "triggers": [
+            {
+              "id": 5,
+              "description": "Summon reinforcements at 30% HP",
+              "enabled": true,
+              "condition": "hpPctBetween",
+              "paramData": {
+                "sourceActor": "Galvanth",
+                "hpMin": 0,
+                "hpMax": 30
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 6
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "name": "Final reinforcements",
+          "onEnter": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 3
+              },
+              "id": 7
+            }
+          ],
+          "onExit": [
+            {
+              "type": "bNpcFlags",
+              "startTime": 0,
+              "description": "",
+              "data": {
+                "targetActor": "Galvanth",
+                "flags": 0,
+                "flagsMask": 0,
+                "invulnType": 0
+              },
+              "id": 1
+            }
+          ],
+          "triggers": [
+            {
+              "id": 6,
+              "description": "Resume combat after the protecting imps fall",
+              "enabled": true,
+              "condition": "encounterGroupDefeated",
+              "paramData": {
+                "group": "Wave 3 imps",
+                "count": 2
+              },
+              "action": {
+                "type": "transitionPhase",
+                "phaseId": 7
+              }
+            }
+          ],
+          "schedules": [
+            {
+              "id": 3,
+              "name": "Final reinforcements",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 2029064,
+                    "hp": 516,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    },
+                    "channeling": {
+                      "id": 1,
+                      "targetActor": "Galvanth"
+                    },
+                    "group": "Wave 3 imps"
+                  },
+                  "id": 1
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 2029065,
+                    "hp": 516,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    },
+                    "channeling": {
+                      "id": 1,
+                      "targetActor": "Galvanth"
+                    },
+                    "group": "Wave 3 imps"
+                  },
+                  "id": 2
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334976,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 3
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334970,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 4
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 1334969,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 5
+                },
+                {
+                  "type": "bNpcSpawn",
+                  "startTime": 0,
+                  "description": "",
+                  "data": {
+                    "layoutId": 2029118,
+                    "hp": 172,
+                    "spawnTimeline": 142,
+                    "hateSource": {
+                      "hateType": "encounterPlayers"
+                    }
+                  },
+                  "id": 6
+                }
+              ]
+            },
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "name": "Final assault",
+          "onEnter": [],
+          "onExit": [],
+          "triggers": [],
+          "schedules": [
+            {
+              "id": 1,
+              "name": "Water",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 3200,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 971,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Drain Touch",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "infinite",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 14000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 988,
+                    "targetType": "target",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "idle",
+                  "startTime": 26000,
+                  "description": "",
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "name": "Mind Blast",
+              "description": "",
+              "loopCount": 1,
+              "loopType": "none",
+              "timepoints": [
+                {
+                  "id": 1,
+                  "startTime": 74000,
+                  "type": "castAction",
+                  "description": "",
+                  "data": {
+                    "sourceActor": "Galvanth",
+                    "actionId": 987,
+                    "targetType": "self",
+                    "selectorName": "<unset>",
+                    "selectorIndex": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "selectors": [],
+  "mechanics": {}
+}

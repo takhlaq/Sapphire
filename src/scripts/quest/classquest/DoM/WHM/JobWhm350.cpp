@@ -185,16 +185,28 @@ private:
     if( !enemy0Spawned )
     {
       auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy0 )
+        return;
+
+      instance->pushActor( enemy0 );
       enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
     }
     if( !enemy1Spawned )
     {
       auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy1 )
+        return;
+
+      instance->pushActor( enemy1 );
       enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );
     }
     if( !enemy2Spawned )
     {
       auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy2 )
+        return;
+
+      instance->pushActor( enemy2 );
       enemy2->hateListAddDelayed( player.getAsPlayer(), 1 );
     }
   }

@@ -239,6 +239,10 @@ private:
     if( !enemySpawned )
     {
       auto enemy = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy )
+        return;
+
+      instance->pushActor( enemy );
       enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
     }
   }

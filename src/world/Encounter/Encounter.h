@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <set>
 #include <stack>
@@ -166,7 +167,10 @@ namespace Sapphire::World::Encounter
 
     void setStatus( EncounterStatus status );
 
-    void addBNpc( Entity::BNpcPtr pBNpc, bool bind = false );
+    void addBNpc( Entity::BNpcPtr pBNpc, bool bind = false, const std::string& group = {} );
+
+    bool areRequiredParticipantsDefeated() const;
+    bool areParticipantsDefeated( const std::string& group, size_t expectedCount ) const;
 
     Entity::BNpcPtr getBNpc( uint32_t layoutId ) const;
 
@@ -212,6 +216,8 @@ namespace Sapphire::World::Encounter
     void removeEObj( Entity::EventObjectPtr pEObj );
     void removeEObjs();
 
+    void sendSealMessage( EncounterLogMessage message );
+
     bool canBindActors() const;
     void bindActor( Entity::GameObjectPtr pActor );
     void unbindActor( Entity::GameObjectPtr pActor );
@@ -254,7 +260,12 @@ namespace Sapphire::World::Encounter
     std::set< Entity::GameObjectPtr > m_boundActors;
     std::set< Entity::PlayerPtr > m_playersInside;
     std::set< Entity::PlayerPtr > m_playerList;
-    std::unordered_map< uint32_t, Entity::BNpcPtr > m_bnpcs;
+    struct Participant
+    {
+      Entity::BNpcPtr npc;
+      std::string group;
+    };
+    std::multimap< uint32_t, Participant > m_bnpcs;
     std::unordered_map< uint32_t, Entity::BNpcPtr > m_bossBnpcs;
     EncounterStatus m_status{ EncounterStatus::IDLE };
     Event::DirectorPtr m_pDirector;

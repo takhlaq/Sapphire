@@ -152,6 +152,10 @@ private:
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy0 )
+      return;
+
+    instance->pushActor( enemy0 );
     enemy0->hateListAdd( player.getAsPlayer(), 1 );
   }
 

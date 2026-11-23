@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <algorithm>
 #include <vector>
 #include <time.h>
 #include <random>
@@ -12,6 +13,7 @@
 #include <Network/PacketDef/Zone/ServerZoneDef.h>
 #include <Network/PacketContainer.h>
 #include <Network/CommonActorControl.h>
+#include <Network/Util/PacketUtil.h>
 #include <Database/DatabaseDef.h>
 #include <Network/PacketWrappers/ActorControlSelfPacket.h>
 #include <Service.h>
@@ -395,6 +397,14 @@ void Territory::pushActor( const Entity::GameObjectPtr& pActor )
   pActor->setTerritoryTypeId( getTerritoryTypeId() );
 }
 
+void Territory::pushActor( const Entity::BNpcPtr& pBNpc, uint32_t spawnTimeline )
+{
+  if( getActiveBNpcByEntityId( pBNpc->getId() ) != pBNpc )
+    pushActor( pBNpc );
+  if( spawnTimeline )
+    Network::Util::Packet::sendBNpcSpawnControl( *pBNpc, Network::ActorControl::PlaySpawnTimeline, 1, spawnTimeline );
+}
+
 void Territory::removeActor( const Entity::GameObjectPtr& pActor )
 {
   auto cellId = pActor->getCellId();
@@ -429,6 +439,8 @@ void Territory::removeActor( const Entity::GameObjectPtr& pActor )
   else if( pActor->isBattleNpc() )
   {
     auto pBNpc = pActor->getAsBNpc();
+    if( pBNpc->hateListGetHighestValue() )
+      pBNpc->hateListClear();
     pBNpc->detachController();
 
     if( m_pNaviProvider && pBNpc->getAgentId() != -1 )
@@ -988,11 +1000,19 @@ std::shared_ptr< Excel::ExcelStruct< Excel::TerritoryType > > Territory::getTerr
 
 void Territory::updateSpawnPoints()
 {
-  auto& server = Common::Service< World::WorldServer >::ref();
+  const auto now = Common::Util::getTimeSeconds();
+
+  if( getAsInstanceContent() )
+  {
+    auto expired = std::remove_if( m_spawnInfo.begin(), m_spawnInfo.end(), []( const SpawnInfo& spawn ) {
+      return spawn.infoPtr->InvalidRepop && spawn.bnpcPtr && !spawn.bnpcPtr->isAlive();
+    } );
+    m_spawnInfo.erase( expired, m_spawnInfo.end() );
+  }
 
   for( auto& spawn : m_spawnInfo )
   {
-    if( !spawn.bnpcPtr && ( Common::Util::getTimeSeconds() - spawn.timeOfDeath ) > spawn.infoPtr->PopInterval )
+    if( !spawn.bnpcPtr && ( now - spawn.timeOfDeath ) > spawn.infoPtr->PopInterval )
     {
       auto pBNpc = std::make_shared< Entity::BNpc >( getNextActorId(), spawn.infoPtr, *this );
       pBNpc->init();
@@ -1002,7 +1022,7 @@ void Territory::updateSpawnPoints()
     }
     else if( spawn.bnpcPtr && !spawn.bnpcPtr->isAlive() )
     {
-      spawn.timeOfDeath = Common::Util::getTimeSeconds();
+      spawn.timeOfDeath = now;
       spawn.bnpcPtr.reset();
     }
   }
@@ -1043,24 +1063,6 @@ World::Encounter::EncounterPtr Territory::getEncounter( const std::string& name 
 
 Entity::BNpcPtr Territory::createBNpcFromLayoutId( uint32_t layoutId, uint32_t hp, Common::BNpcType bnpcType,
                                                    uint32_t triggerOwnerId, World::AI::Controller::ControllerUPtr pController )
-{
-  auto infoPtr = m_bNpcBaseMap.find( layoutId );
-  if( infoPtr == m_bNpcBaseMap.end() )
-    return nullptr;
-
-  auto pBNpc = std::make_shared< Entity::BNpc >( getNextActorId(), infoPtr->second, *this, hp, bnpcType );
-
-  if( pController )
-    pBNpc->setController( std::move( pController ) );
-
-  pBNpc->init();
-  pBNpc->setTriggerOwnerId( triggerOwnerId );
-  pushActor( pBNpc );
-  return pBNpc;
-}
-
-Entity::BNpcPtr Territory::createBNpcFromLayoutIdNoPush( uint32_t layoutId, uint32_t hp, Common::BNpcType bnpcType,
-                                                         uint32_t triggerOwnerId, World::AI::Controller::ControllerUPtr pController )
 {
   auto infoPtr = m_bNpcBaseMap.find( layoutId );
   if( infoPtr == m_bNpcBaseMap.end() )

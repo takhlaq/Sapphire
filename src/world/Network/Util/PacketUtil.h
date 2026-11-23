@@ -7,6 +7,9 @@
 
 namespace Sapphire::Network::Util::Packet
 {
+  void sendBNpcSpawn( Entity::BNpc& npc, Entity::Player& player );
+  void sendBNpcSpawnControl( Entity::BNpc& npc, uint16_t category, uint32_t param1, uint32_t param2 = 0 );
+
   void sendConfigFlags( Entity::Player& player );
   void sendOnlineStatus( Entity::Player& player );
   void sendBaseParams( Entity::Player& player );

@@ -250,6 +250,10 @@ private:
     quest.setBitFlag8( 1, true );//removes the location
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( enemyCirclingVulture, 90, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy )
+      return;
+
+    instance->pushActor( enemy );
     enemy->hateListAdd( player.getAsPlayer(), 1 );
   }
 

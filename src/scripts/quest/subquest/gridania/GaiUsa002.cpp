@@ -235,6 +235,10 @@ private:
     quest.setBitFlag8( 1, true );
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy )
+      return;
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
   }
 
@@ -261,6 +265,10 @@ private:
     quest.setBitFlag8( 2, true );
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy1, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy )
+      return;
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
   }
 
@@ -287,6 +295,10 @@ private:
     quest.setBitFlag8( 3, true );
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy2, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy )
+      return;
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
   }
 

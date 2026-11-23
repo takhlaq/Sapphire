@@ -157,6 +157,11 @@ private:
     {
       auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
       auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy0 || !enemy1 )
+        return;
+
+      instance->pushActor( enemy0 );
+      instance->pushActor( enemy1 );
       enemy0->hateListAdd( player.getAsPlayer(), 1 );
       enemy1->hateListAdd( player.getAsPlayer(), 1 );
     }

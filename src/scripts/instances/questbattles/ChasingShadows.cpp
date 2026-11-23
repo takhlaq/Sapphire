@@ -246,8 +246,13 @@ public:
       instance.setDirectorVar( SET_1_SPAWNED, 1 );
       auto a2 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_03, 1440, Common::BNpcType::Enemy );
       auto a3 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_04, 1440, Common::BNpcType::Enemy );
+      if( !a2 || !a3 )
+        return;
       a2->setFlag( Entity::NoDeaggro );
       a3->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a2 );
+      instance.pushActor( a3 );
 
       a2->hateListAdd( ida, 10000 );
       a3->hateListAdd( ida, 10000 );
@@ -256,8 +261,13 @@ public:
 
       auto a4 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_01, 300, Common::BNpcType::Enemy );
       auto a5 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_02, 300, Common::BNpcType::Enemy );
+      if( !a4 || !a5 )
+        return;
       a4->setFlag( Entity::NoDeaggro );
       a5->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a4 );
+      instance.pushActor( a5 );
 
       auto pPlayer = instance.getPlayerPtr();
       a4->hateListAdd( pPlayer, 1 );
@@ -269,8 +279,13 @@ public:
       instance.setDirectorVar( SET_2_SPAWNED, 1 );
       auto a2 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_05, 1440, Common::BNpcType::Enemy );
       auto a3 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_06, 1440, Common::BNpcType::Enemy );
+      if( !a2 || !a3 )
+        return;
       a2->setFlag( Entity::NoDeaggro );
       a3->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a2 );
+      instance.pushActor( a3 );
 
       a2->hateListAdd( ida, 10000 );
       a3->hateListAdd( ida, 10000 );
@@ -279,8 +294,13 @@ public:
 
       auto a4 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_03, 300, Common::BNpcType::Enemy );
       auto a5 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_04, 300, Common::BNpcType::Enemy );
+      if( !a4 || !a5 )
+        return;
       a4->setFlag( Entity::NoDeaggro );
       a5->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a4 );
+      instance.pushActor( a5 );
 
       auto pPlayer = instance.getPlayerPtr();
       a4->hateListAdd( pPlayer, 1 );
@@ -294,8 +314,13 @@ public:
 
       auto a4 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_05, 300, Common::BNpcType::Enemy );
       auto a5 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_06, 300, Common::BNpcType::Enemy );
+      if( !a4 || !a5 )
+        return;
       a4->setFlag( Entity::NoDeaggro );
       a5->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a4 );
+      instance.pushActor( a5 );
 
       auto pPlayer = instance.getPlayerPtr();
       a4->hateListAdd( pPlayer, 1 );
@@ -342,11 +367,19 @@ public:
 
     auto ida = instance.createBNpcFromLayoutId( INIT_P_POP_IDA, 27780, Common::BNpcType::Friendly );
     auto papa = instance.createBNpcFromLayoutId( INIT_P_POP_PAPARIMO, 27780, Common::BNpcType::Friendly );
+    if( !boss || !a2 || !a3 || !ida || !papa )
+      return;
     boss->setFlag( Entity::NoDeaggro );
     a2->setFlag( Entity::NoDeaggro );
     a3->setFlag( Entity::NoDeaggro );
     ida->setFlag( Entity::NoDeaggro );
     papa->setFlag( Entity::NoDeaggro );
+
+    instance.pushActor( boss );
+    instance.pushActor( a2 );
+    instance.pushActor( a3 );
+    instance.pushActor( ida );
+    instance.pushActor( papa );
     boss->hateListAdd( ida, 10000 );
     boss->hateListAdd( papa, 10000 );
     boss->hateListAdd( player.getAsPlayer(), 1 );

@@ -70,6 +70,7 @@ namespace Sapphire::Network::ActorControl
 
     CombatIndicationShow = 0x22,
 
+    PlaySpawnTimeline = 0x24,
     SpawnEffect = 0x25,
     ToggleInvisible = 0x26,
     DeadFadeOut = 0x27,

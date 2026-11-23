@@ -173,9 +173,15 @@ public:
         auto b1 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_01, 1440 /* find real val */, Common::BNpcType::Enemy, pPlayer->getId() );
         auto b2 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_02, 1440 /* find real val */, Common::BNpcType::Enemy, pPlayer->getId() );
         auto b3 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_B_03, 1440 /* find real val */, Common::BNpcType::Enemy, pPlayer->getId() );
+        if( !b1 || !b2 || !b3 )
+          return;
         b1->setFlag( Entity::NoDeaggro );
         b2->setFlag( Entity::NoDeaggro );
         b3->setFlag( Entity::NoDeaggro );
+
+        instance.pushActor( b1 );
+        instance.pushActor( b2 );
+        instance.pushActor( b3 );
 
         b1->hateListAdd( pPlayer, 1 );
         b2->hateListAdd( pPlayer, 1 );
@@ -190,7 +196,11 @@ public:
         //    1x duskwight freelancer captain lv10
         instance.setDirectorVar( Boss, 1 );
         auto boss = instance.createBNpcFromLayoutId( INIT_POP_BOSS, 14000 /* find real val */, Common::BNpcType::Enemy, pPlayer->getId() );
+        if( !boss )
+          return;
         boss->setFlag( Entity::NoDeaggro );
+
+        instance.pushActor( boss );
 
         boss->hateListAdd( pPlayer, 1 );
         return;
@@ -226,15 +236,25 @@ public:
   {
     // spawn bruce
     auto bruce = instance.createBNpcFromLayoutId( INIT_P_POP_BRUCE, 14000 /* find real val */, Common::BNpcType::Friendly, player.getId() );
+    if( !bruce )
+      return;
+
+    instance.pushActor( bruce );
 
     // spawn wave 1:
     //    3x lv8 duskwight freelancer north entrance
     auto a1 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_01, 1440 /* find real val */, Common::BNpcType::Enemy, player.getId() );
     auto a2 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_02, 1440 /* find real val */, Common::BNpcType::Enemy, player.getId() );
     auto a3 = instance.createBNpcFromLayoutId( INIT_POP_ENEMY_A_03, 1440 /* find real val */, Common::BNpcType::Enemy, player.getId() );
+    if( !a1 || !a2 || !a3 )
+      return;
     a1->setFlag( Entity::NoDeaggro );
     a2->setFlag( Entity::NoDeaggro );
     a3->setFlag( Entity::NoDeaggro );
+
+    instance.pushActor( a1 );
+    instance.pushActor( a2 );
+    instance.pushActor( a3 );
 
     a1->hateListAdd( player.getAsPlayer(), 1 );
     a2->hateListAdd( player.getAsPlayer(), 1 );

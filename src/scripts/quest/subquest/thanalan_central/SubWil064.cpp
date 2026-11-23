@@ -90,9 +90,14 @@ private:
         auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
         auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
         auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+        if( !enemy1 || !enemy2 )
+          return;
 
         enemy1->setTriggerOwnerId( player.getId() );
         enemy2->setTriggerOwnerId( player.getId() );
+
+        instance->pushActor( enemy1 );
+        instance->pushActor( enemy2 );
         enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );
         enemy2->hateListAddDelayed( player.getAsPlayer(), 1 );
         quest.setUI8AL( 1 );
@@ -159,7 +164,11 @@ private:
     quest.setBitFlag8( 1, true );
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy0 )
+      return;
     enemy0->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy0 );
     enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
   }
 

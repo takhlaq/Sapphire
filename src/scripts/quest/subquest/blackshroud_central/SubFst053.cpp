@@ -191,9 +191,15 @@ private:
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
     auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy0 || !enemy1 || !enemy2 )
+      return;
     enemy0->setTriggerOwnerId( player.getId() );
     enemy1->setTriggerOwnerId( player.getId() );
     enemy2->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy0 );
+    instance->pushActor( enemy1 );
+    instance->pushActor( enemy2 );
     enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
     enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );
     enemy2->hateListAddDelayed( player.getAsPlayer(), 1 );

@@ -1035,12 +1035,12 @@ float Chara::getModifier( Common::ParamModifier paramModifier ) const
 
 float Chara::getPhysicalWeaponDamage()
 {
-  return 1.0f;
+  return std::max( 1.0f, getStatValueFloat( Common::BaseParam::PhysicalDamage ) );
 }
 
 float Chara::getMagicalWeaponDamage()
 {
-  return 1.0f;
+  return std::max( 1.0f, getStatValueFloat( Common::BaseParam::MagicDamage ) );
 }
 
 // Compute forward direction based on rotation angle (assuming rotation around Z axis)

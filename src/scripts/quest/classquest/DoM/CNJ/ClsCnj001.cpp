@@ -198,7 +198,11 @@ private:
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy )
+      return;
     enemy->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
 
     quest.setBitFlag8( 1, true );

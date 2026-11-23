@@ -215,8 +215,12 @@ public:
   {
     // spawn clay golem 900hp
     auto boss = instance.createBNpcFromLayoutId( INIT_POP_01, 900 /* feels low must be higher  */, Common::BNpcType::Enemy );
+    if( !boss )
+      return;
 
     boss->setFlag( Entity::NoDeaggro );
+
+    instance.pushActor( boss );
     boss->hateListAdd( player.getAsPlayer(), 1 );
   }
 };

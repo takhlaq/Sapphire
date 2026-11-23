@@ -143,6 +143,7 @@ namespace Sapphire
     Common::Weather getNextWeather();
 
     void pushActor( const Entity::GameObjectPtr& pActor );
+    void pushActor( const Entity::BNpcPtr& pBNpc, uint32_t spawnTimeline );
 
     void removeActor( const Entity::GameObjectPtr &pActor );
 
@@ -192,7 +193,6 @@ namespace Sapphire
     void addEObj( Entity::EventObjectPtr object );
 
     Entity::BNpcPtr createBNpcFromLayoutId( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0, World::AI::Controller::ControllerUPtr pController = nullptr );
-    Entity::BNpcPtr createBNpcFromLayoutIdNoPush( uint32_t levelId, uint32_t hp, Common::BNpcType bnpcType, uint32_t triggerOwnerId = 0, World::AI::Controller::ControllerUPtr pController = nullptr );
 
     Entity::GameObjectPtr getEntityById( uint32_t entityId );
 

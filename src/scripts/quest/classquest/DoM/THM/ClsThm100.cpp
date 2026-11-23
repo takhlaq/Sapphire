@@ -282,8 +282,13 @@ private:
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy1, 120, Common::BNpcType::Enemy, player.getId() );
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy2, 120, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy0 || !enemy1 )
+      return;
     enemy0->setTriggerOwnerId( player.getId() );
     enemy1->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy0 );
+    instance->pushActor( enemy1 );
     enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
     enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );
   }

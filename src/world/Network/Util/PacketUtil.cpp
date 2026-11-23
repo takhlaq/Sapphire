@@ -1,4 +1,5 @@
 #include "PacketUtil.h"
+#include <Network/PacketWrappers/NpcSpawnPacket.h>
 
 #include <Exd/ExdData.h>
 
@@ -28,6 +29,22 @@ using namespace Sapphire::Network::Util::Packet;
 using namespace Sapphire::Network::Packets;
 using namespace Sapphire::Network::Packets::WorldPackets::Server;
 using namespace Sapphire::Network::ActorControl;
+
+void Sapphire::Network::Util::Packet::sendBNpcSpawn( Entity::BNpc& npc, Entity::Player& player )
+{
+  server().queueForPlayer( player.getCharacterId(), std::make_shared< NpcSpawnPacket >( npc, player ) );
+}
+
+void Sapphire::Network::Util::Packet::sendBNpcSpawnControl( Entity::BNpc& npc, uint16_t category, uint32_t param1, uint32_t param2 )
+{
+  for( const auto& actor : npc.getInRangeActors() )
+  {
+    auto player = actor->getAsPlayer();
+    if( player && player->hasActorSpawned( npc.getId() ) )
+      sendActorControl( *player, npc.getId(), category, param1, param2 );
+  }
+}
+
 
 void Util::Packet::sendConfigFlags( Entity::Player& player )
 {

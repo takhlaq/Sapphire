@@ -179,8 +179,16 @@ class ClsGla100 : public Sapphire::ScriptAPI::QuestScript
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy0 )
+      return;
+
+    instance->pushActor( enemy0 );
     enemy0->hateListAdd( player.getAsPlayer(), 1 );
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy1 )
+      return;
+
+    instance->pushActor( enemy1 );
     enemy1->hateListAdd( player.getAsPlayer(), 1 );
   }
 

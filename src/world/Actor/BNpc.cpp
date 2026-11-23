@@ -16,7 +16,6 @@
 #include "Network/PacketWrappers/ActorControlPacket.h"
 #include "Network/PacketWrappers/ActorControlSelfPacket.h"
 #include "Network/PacketWrappers/ActorControlTargetPacket.h"
-#include "Network/PacketWrappers/NpcSpawnPacket.h"
 #include "Network/PacketWrappers/MoveActorPacket.h"
 #include "Network/Util/PacketUtil.h"
 
@@ -76,11 +75,13 @@ using namespace Sapphire::World::Manager;
 
 BNpc::BNpc() : Npc( ObjKind::BattleNpc )
 {
+  m_maxHp = 0;
 }
 
 BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const Territory& zone ) : Npc(
                                                                                                             ObjKind::BattleNpc )
 {
+  m_maxHp = 0;
   m_id = id;
   m_pInfo = pInfo;
   m_layoutId = pInfo->instanceId;
@@ -139,13 +140,8 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   m_timeOfDeath = 0;
   m_targetId = Common::INVALID_GAME_OBJECT_ID64;
 
-  m_maxHp = 500;
   m_maxMp = 200;
-  m_hp = m_maxHp;
   m_mp = 200;
-
-  if( m_level <= BnpcBaseHp.size() )
-    m_maxHp = BnpcBaseHp[ m_level - 1 ];
 
   m_state = BNpcState::Idle;
   m_status = ActorStatus::Idle;
@@ -202,6 +198,7 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
 BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const Territory& zone, uint32_t hp,
             Common::BNpcType type ) : Npc( ObjKind::BattleNpc )
 {
+  m_maxHp = hp;
   m_id = id;
   m_pInfo = pInfo;
   m_layoutId = pInfo->instanceId;
@@ -256,9 +253,7 @@ BNpc::BNpc( uint32_t id, std::shared_ptr< Common::BNpcCacheEntry > pInfo, const 
   m_timeOfDeath = 0;
   m_targetId = Common::INVALID_GAME_OBJECT_ID64;
 
-  m_maxHp = hp;
   m_maxMp = 200;
-  m_hp = m_maxHp;
   m_mp = 200;
 
   m_state = BNpcState::Idle;
@@ -413,12 +408,20 @@ uint32_t BNpc::getBNpcNameId() const
   return m_bNpcNameId;
 }
 
+bool BNpc::isAwaitingSpawnReveal() const
+{
+  return m_awaitingSpawnReveal;
+}
+
+void BNpc::setAwaitingSpawnReveal( bool pending )
+{
+  m_awaitingSpawnReveal = pending;
+}
+
 void BNpc::spawn( PlayerPtr pTarget )
 {
   m_lastRoamTargetReachedTime = Common::Util::getTimeSeconds();
-
-  auto& server = Common::Service< World::WorldServer >::ref();
-  server.queueForPlayer( pTarget->getCharacterId(), std::make_shared< NpcSpawnPacket >( *this, *pTarget ) );
+  Network::Util::Packet::sendBNpcSpawn( *this, *pTarget );
 }
 
 void BNpc::despawn( PlayerPtr pTarget )
@@ -646,19 +649,35 @@ void BNpc::hateListAdd( const CharaPtr& pChara, int32_t hateAmount )
       return;
     }
 
-    auto hateEntry = std::make_shared< HateListEntry >();
-    hateEntry->m_hateAmount = hateAmount;
-    hateEntry->m_pChara = pChara;
-
-    m_hateList.emplace( pChara->getId(), hateEntry );
-    if( pChara->isPlayer() )
-    {
-      auto pPlayer = pChara->getAsPlayer();
-      pPlayer->hateListAdd( *this );
-      World::Manager::PlayerMgr::sendDebug( *pChara->getAsPlayer(), "New Aggro: {}, Aggro gained: {}", hateAmount,
-                                            hateAmount );
-    }
+    insertHateEntry( pChara, hateAmount );
   }
+}
+
+void BNpc::insertHateEntry( const CharaPtr& pChara, uint32_t hateAmount )
+{
+  auto hateEntry = std::make_shared< HateListEntry >();
+  hateEntry->m_hateAmount = hateAmount;
+  hateEntry->m_pChara = pChara;
+
+  m_hateList.emplace( pChara->getId(), hateEntry );
+  if( pChara->isPlayer() )
+  {
+    auto pPlayer = pChara->getAsPlayer();
+    pPlayer->hateListAdd( *this );
+    World::Manager::PlayerMgr::sendDebug( *pChara->getAsPlayer(), "New Aggro: {}, Aggro gained: {}", hateAmount,
+                                          hateAmount );
+  }
+}
+
+void BNpc::copyHateList( const BNpc& source )
+{
+  if( &source == this )
+    return;
+  if( !m_hateList.empty() )
+    hateListClear();
+  for( const auto& [ id, entry ] : source.getHateList() )
+    if( entry->m_pChara->isAlive() && entry->m_pChara->getTerritoryId() == getTerritoryId() && entry->m_hateAmount )
+      insertHateEntry( entry->m_pChara, entry->m_hateAmount );
 }
 
 void BNpc::hateListAddDelayed( const CharaPtr& pChara, int32_t hateAmount )
@@ -714,6 +733,22 @@ void BNpc::hateListRemove( const CharaPtr& pChara )
     PlayerPtr tmpPlayer = pChara->getAsPlayer();
     tmpPlayer->onMobDeaggro( *this );
   }
+}
+
+void BNpc::setSpawnChanneling( uint8_t channel, uint32_t targetId )
+{
+  m_channeling = channel;
+  m_channelingTargetId = targetId;
+}
+
+uint8_t BNpc::getChanneling() const
+{
+  return m_channeling;
+}
+
+uint32_t BNpc::getChannelingTargetId() const
+{
+  return m_channelingTargetId;
 }
 
 uint32_t BNpc::getTriggerOwnerId() const
@@ -894,6 +929,7 @@ void BNpc::onDeath()
   setTargetId( INVALID_GAME_OBJECT_ID64 );
   m_currentStance = Stance::Passive;
   m_state = BNpcState::Dead;
+  setSpawnChanneling( 0, INVALID_GAME_OBJECT_ID );
   m_timeOfDeath = Common::Util::getTimeSeconds();
   setOwner( nullptr );
 
@@ -1377,7 +1413,8 @@ uint32_t BNpc::getLayoutId() const
 
 void BNpc::init()
 {
-  m_maxHp = Math::CalcStats::calculateMaxHp( *getAsChara() );
+  if( !m_maxHp )
+    m_maxHp = Math::CalcStats::calculateMaxHp( *this );
   m_hp = m_maxHp;
 
   m_lastRoamTargetReachedTime = Common::Util::getTimeSeconds();

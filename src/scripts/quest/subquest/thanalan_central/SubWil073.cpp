@@ -309,8 +309,12 @@ class SubWil073 : public Sapphire::ScriptAPI::QuestScript
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy )
+      return;
 
     enemy->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
     quest.setBitFlag8( 1, true );
 
@@ -327,8 +331,12 @@ class SubWil073 : public Sapphire::ScriptAPI::QuestScript
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy )
+      return;
 
     enemy->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
     quest.setBitFlag8( 2, true );
 
@@ -345,8 +353,12 @@ class SubWil073 : public Sapphire::ScriptAPI::QuestScript
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy2, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy )
+      return;
 
     enemy->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
     quest.setBitFlag8( 3, true );
 
@@ -364,8 +376,12 @@ class SubWil073 : public Sapphire::ScriptAPI::QuestScript
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy = instance->createBNpcFromLayoutId( Enemy3, 1220 /*Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy )
+      return;
 
     enemy->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy );
     enemy->hateListAddDelayed( player.getAsPlayer(), 1 );
     quest.setBitFlag8( 4, true );
 

@@ -144,8 +144,13 @@ public:
       instance.setDirectorVar( SET_1_SPAWNED, 1 );
       auto a2 = instance.createBNpcFromLayoutId( INIT_POP_01_01, 1440 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
       auto a3 = instance.createBNpcFromLayoutId( INIT_POP_01_02, 1440 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
+      if( !a2 || !a3 )
+        return;
       a2->setFlag( Entity::NoDeaggro );
       a3->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a2 );
+      instance.pushActor( a3 );
 
       auto pPlayer = instance.getPlayerPtr();
       a2->hateListAdd( pPlayer, 1 );
@@ -162,10 +167,17 @@ public:
       auto a3 = instance.createBNpcFromLayoutId( INIT_POP_02_02, 1440 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
       auto a4 = instance.createBNpcFromLayoutId( INIT_POP_02_03, 1440 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
       auto a5 = instance.createBNpcFromLayoutId( INIT_POP_02_04, 1440 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
+      if( !a2 || !a3 || !a4 || !a5 )
+        return;
       a2->setFlag( Entity::NoDeaggro );
       a3->setFlag( Entity::NoDeaggro );
       a4->setFlag( Entity::NoDeaggro );
       a5->setFlag( Entity::NoDeaggro );
+
+      instance.pushActor( a2 );
+      instance.pushActor( a3 );
+      instance.pushActor( a4 );
+      instance.pushActor( a5 );
 
       auto pPlayer = instance.getPlayerPtr();
       a2->hateListAdd( pPlayer, 1 );
@@ -215,9 +227,14 @@ public:
     // TODO: Change to correct HP values
     auto boss = instance.createBNpcFromLayoutId( INIT_POP_BOSS, 10571 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
     auto thancred = instance.createBNpcFromLayoutId( INIT_P_POP_01, 27780 /*TODO: Find the right value*/, Common::BNpcType::Friendly );
+    if( !boss || !thancred )
+      return;
 
     boss->setFlag( Entity::NoDeaggro );
     thancred->setFlag( Entity::NoDeaggro );
+
+    instance.pushActor( boss );
+    instance.pushActor( thancred );
 
     boss->hateListAdd( thancred, 10000 );
     boss->hateListAdd( player.getAsPlayer(), 1 );

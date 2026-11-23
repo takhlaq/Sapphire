@@ -22,6 +22,8 @@
 #include <Manager/ActionMgr.h>
 #include <Manager/PlayerMgr.h>
 #include <Manager/MgrUtil.h>
+#include <Manager/TaskMgr.h>
+#include <Task/RevealBNpcTask.h>
 
 #include <Random/RNGMgr.h>
 
@@ -328,31 +330,49 @@ namespace Sapphire::World::Encounter
       case TimepointDataType::BNpcSpawn:
       {
         auto& dataJ = json.at( "data" );
-        // auto hateSrcJ = dataJ.at( "hateSrc" );
-        auto actorRef = dataJ.at( "spawnActor" ).get< std::string >();
-        auto flags = dataJ.at( "flags" ).get< uint32_t >();
-        // todo: batallion
-        // auto battalion = dataJ.at( "batallion" ).get< uint32_t >();
-        auto bnpcType = Common::BNpcType::Enemy;//bnpcTypeMap.at( dataJ.at( "type" ).get< std::string >() );
-        auto flagsMaskJ = dataJ.at( "flagsMask" );
-        auto flagsMask = 0xFFFFFFFF;
-        auto invulnJ = dataJ.at( "invulnType" );
+        const bool newInstance = dataJ.contains( "layoutId" );
+        const auto layoutId = newInstance ? dataJ.at( "layoutId" ).get< uint32_t >() :
+                              actors.at( dataJ.at( "spawnActor" ).get< std::string >() ).getLayoutId();
+        const auto flags = dataJ.value( "flags", 0u );
+        auto flagsMask = dataJ.contains( "flags" ) ? 0xFFFFFFFFu : 0u;
+        if( dataJ.contains( "flagsMask" ) && !dataJ.at( "flagsMask" ).is_null() )
+          flagsMask = dataJ.at( "flagsMask" ).get< uint32_t >();
+
         auto invincibilityType = Common::InvincibilityNone;
+        if( dataJ.contains( "invulnType" ) && !dataJ.at( "invulnType" ).is_null() )
+          invincibilityType = dataJ.at( "invulnType" ).get< Common::InvincibilityType >();
 
-        if( !flagsMaskJ.is_null() )
-          flagsMask = flagsMaskJ.get< uint32_t >();
-
-        if( !invulnJ.is_null() )
-          invincibilityType = invulnJ.get< Common::InvincibilityType >();
-        // todo: hateSrc
-
-        uint32_t layoutId = Common::INVALID_GAME_OBJECT_ID;
-        if( auto it = actors.find( actorRef ); it != actors.end() )
-          layoutId = it->second.m_layoutId;
-        else
-          throw std::runtime_error( fmt::format( std::string( "Timepoint::from_json: BNpcSpawn invalid actor ref: {}" ), actorRef ) );
-
-        m_pData = std::make_shared< TimepointDataBNpcSpawn >( layoutId, flags, flagsMask, invincibilityType, bnpcType );
+        auto pSpawn = std::make_shared< TimepointDataBNpcSpawn >( layoutId, flags, flagsMask, invincibilityType, Common::BNpcType::Enemy );
+        pSpawn->m_newInstance = newInstance;
+        pSpawn->m_hp = dataJ.value( "hp", 100u );
+        pSpawn->m_spawnTimeline = dataJ.value( "spawnTimeline", 0u );
+        if( auto it = dataJ.find( "channeling" ); it != dataJ.end() )
+        {
+          const auto id = it->at( "id" ).get< int >();
+          pSpawn->m_channelingTarget = it->at( "targetActor" ).get< std::string >();
+          if( id < 1 || id > 255 || !actors.count( pSpawn->m_channelingTarget ) )
+            throw std::runtime_error( "Invalid spawn channeling ID or target actor" );
+          pSpawn->m_channeling = static_cast< uint8_t >( id );
+        }
+        pSpawn->m_revealDelay = dataJ.value( "revealDelay", 0u );
+        pSpawn->m_group = dataJ.value( "group", std::string() );
+        if( auto it = dataJ.find( "hateSource" ); it != dataJ.end() && !it->is_null() )
+        {
+          const auto type = it->at( "hateType" ).get< std::string >();
+          using SpawnHate = TimepointDataBNpcSpawn::SpawnHate;
+          if( type == "encounterPlayers" )
+            pSpawn->m_hateType = SpawnHate::EncounterPlayers;
+          else if( type == "copyEnmity" || type == "topEnmity" )
+          {
+            pSpawn->m_hateType = type == "copyEnmity" ? SpawnHate::CopyEnmity : SpawnHate::TopEnmity;
+            pSpawn->m_hateSource = it->at( "source" ).get< std::string >();
+            if( !actors.count( pSpawn->m_hateSource ) )
+              throw std::runtime_error( "Unknown spawn enmity source: " + pSpawn->m_hateSource );
+          }
+          else if( type != "none" && type != "<to-be-defined>" )
+            throw std::runtime_error( "Unknown spawn enmity type: " + type );
+        }
+        m_pData = pSpawn;
       }
       break;
       case TimepointDataType::BNpcFlags:
@@ -562,12 +582,12 @@ namespace Sapphire::World::Encounter
       {
         auto pActionData = std::dynamic_pointer_cast< TimepointDataAction, TimepointData >( m_pData );
         auto pBNpc = pack.getBNpcByRef( pActionData->m_sourceRef, pEncounter );
-        Common::Vector3 pos = pBNpc->getPos();
         // todo: filter the correct target
         // todo: tie to mechanic script?
         // todo: mechanic should probably just be an Action::onTick, with instance/director passed to it
         if( pBNpc )
         {
+          auto pos = pBNpc->getPos();
           uint32_t targetId = pBNpc->getId();
           switch( pActionData->m_targetType )
           {
@@ -1003,11 +1023,9 @@ namespace Sapphire::World::Encounter
       case TimepointDataType::BNpcSpawn:
       {
         auto pSpawnData = std::dynamic_pointer_cast< TimepointDataBNpcSpawn, TimepointData >( m_pData );
-        auto pBNpc = pTeri->getActiveBNpcByLayoutId( pSpawnData->m_layoutId );
-
-        // todo: probably have this info in the timepoint data
+        auto pBNpc = pSpawnData->m_newInstance ? nullptr : pTeri->getActiveBNpcByLayoutId( pSpawnData->m_layoutId );
         if( !pBNpc )
-          pBNpc = pTeri->createBNpcFromLayoutIdNoPush( pSpawnData->m_layoutId, 100, Common::BNpcType::Enemy );
+          pBNpc = pTeri->createBNpcFromLayoutId( pSpawnData->m_layoutId, pSpawnData->m_hp, Common::BNpcType::Enemy );
 
         if( pBNpc )
         {
@@ -1015,19 +1033,59 @@ namespace Sapphire::World::Encounter
           auto currFlag = pBNpc->getFlags();
           auto flags = ( currFlag & ~flagsMask ) | ( pSpawnData->m_flags & flagsMask );
 
-          pBNpc->resetFlags( flags );
+          if( !pSpawnData->m_newInstance || flagsMask )
+            pBNpc->resetFlags( flags );
           pBNpc->setInvincibilityType( static_cast< Common::InvincibilityType >( pSpawnData->m_invincibilityType ) );
-          pBNpc->init();
+          if( !pSpawnData->m_newInstance )
+            pBNpc->init();
 
-          pEncounter->addBNpc( pBNpc );
-          // make sure we bind this bnpc
-          if( pEncounter->isLocked() )
-            pEncounter->bindActor( pBNpc );
+          if( pSpawnData->m_channeling )
+          {
+            auto target = pack.getBNpcByRef( pSpawnData->m_channelingTarget, pEncounter );
+            if( target && target->isAlive() )
+              pBNpc->setSpawnChanneling( pSpawnData->m_channeling, target->getId() );
+          }
+
+          pEncounter->addBNpc( pBNpc, pEncounter->isLocked(), pSpawnData->m_group );
 
           auto pos = pBNpc->getPos();
           Logger::info( "Timepoint::update: BNpcSpawn for actor: {} {} Pos {} {} {}", pBNpc->getId(), pBNpc->getName(), pos.x, pos.y, pos.z );
 
-          pTeri->pushActor( pBNpc );
+          if( pSpawnData->m_revealDelay )
+            Common::Service< Manager::TaskMgr >::ref().queueTask( std::make_shared< RevealBNpcTask >( pSpawnData->m_revealDelay, pBNpc ) );
+          pTeri->pushActor( pBNpc, pSpawnData->m_spawnTimeline );
+
+          using SpawnHate = TimepointDataBNpcSpawn::SpawnHate;
+          switch( pSpawnData->m_hateType )
+          {
+            case SpawnHate::None:
+              break;
+            case SpawnHate::EncounterPlayers:
+              for( const auto& player : pEncounter->getPlayersInside() )
+                if( player->isAlive() && player->getTerritoryId() == pTeri->getGuId() )
+                  pBNpc->hateListAdd( player, 1 );
+              break;
+            case SpawnHate::CopyEnmity:
+            case SpawnHate::TopEnmity:
+            {
+              auto source = pack.getBNpcByRef( pSpawnData->m_hateSource, pEncounter );
+              if( !source || source == pBNpc )
+                break;
+              if( pSpawnData->m_hateType == SpawnHate::CopyEnmity )
+                pBNpc->copyHateList( *source );
+              else if( auto target = source->hateListGetHighest() )
+                pBNpc->aggro( target );
+              break;
+            }
+          }
+          if( pSpawnData->m_hateType == SpawnHate::EncounterPlayers || pSpawnData->m_hateType == SpawnHate::CopyEnmity )
+          {
+            if( auto target = pBNpc->hateListGetHighest() )
+            {
+              pBNpc->aggro( target );
+              pBNpc->hateListUpdatePlayers();
+            }
+          }
         }
       }
       break;

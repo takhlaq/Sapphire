@@ -40,6 +40,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <set>
 
 namespace Sapphire::World::Encounter
 {
@@ -71,6 +72,7 @@ namespace Sapphire::World::Encounter
       { "encounterTimeElapsed",     ConditionType::EncounterTimeElapsed },
 
       { "combatState",              ConditionType::CombatState },
+      { "encounterGroupDefeated",            ConditionType::EncounterGroupDefeated },
       { "bnpcHasFlags",             ConditionType::BNpcHasFlags },
 
       { "getAction",                ConditionType::GetAction },
@@ -166,8 +168,6 @@ namespace Sapphire::World::Encounter
 
       for( const auto& phaseJ : phaseV.items() )
       {
-        std::map< std::string, Schedule > scheduleNameMap;
-
         auto phaseId = phaseJ.value().at( "id" ).get< uint32_t >();
 
         // get the cached phase
@@ -198,34 +198,21 @@ namespace Sapphire::World::Encounter
           }
         }
 
-        // Schedules
-        for( const auto& scheduleJ : phaseJ.value().at( "schedules" ).items() )
+        std::set< std::string > names;
+        for( const auto& scheduleJ : phaseJ.value().at( "schedules" ) )
         {
-          auto& scheduleV = scheduleJ.value();
-          const auto id = scheduleV.at( "id" ).get< uint32_t >();
-          const auto& scheduleName = scheduleV.at( "name" ).get< std::string >();
-          const auto& timepointsJ = scheduleV.at( "timepoints" );
-          const auto& description = scheduleV.at( "description" ).get< std::string >();
+          Schedule schedule;
+          schedule.from_json( scheduleJ );
+          if( !names.insert( schedule.m_name ).second )
+            throw std::runtime_error( "EncounterTimeline::createTimelinePack - duplicate schedule by name: " + schedule.m_name );
 
-          Schedule sched;
-          sched.from_json( scheduleV );
-
-          for( const auto& timepointJ : timepointsJ.items() )
+          for( const auto& point : scheduleJ.at( "timepoints" ) )
           {
-            auto& timepointV = timepointJ.value();
             Timepoint timepoint;
-            timepoint.from_json( timepointV, actorNameMap, actor.m_layoutId );
-
-            sched.addTimepoint( timepoint );
+            timepoint.from_json( point, actorNameMap, actor.m_layoutId );
+            schedule.addTimepoint( timepoint );
           }
-
-          if( scheduleNameMap.find( scheduleName ) != scheduleNameMap.end() )
-            throw std::runtime_error( fmt::format( std::string( "EncounterTimeline::createTimelinePack - duplicate schedule by name: {}" ), scheduleName ) );
-
-          scheduleNameMap.emplace( std::make_pair( scheduleName, sched ) );
-
-          // add to phase
-          pPhase->addSchedule( sched.m_id, sched );
+          pPhase->addSchedule( schedule.m_id, schedule );
         }
 
         // Triggers
@@ -303,6 +290,12 @@ namespace Sapphire::World::Encounter
               case ConditionType::EncounterTimeElapsed:
               {
                 pCondition = std::make_shared< ConditionEncounterTimeElapsed >();
+                pCondition->from_json( conditionJ, condition, actorNameMap );
+              }
+              break;
+              case ConditionType::EncounterGroupDefeated:
+              {
+                pCondition = std::make_shared< ConditionEncounterGroupDefeated >();
                 pCondition->from_json( conditionJ, condition, actorNameMap );
               }
               break;
@@ -450,7 +443,7 @@ namespace Sapphire::World::Encounter
     for( auto& actor : m_timelineActors )
     {
       actor.resetAllSubActors( pEncounter->getTeriPtr() );
-      // todo: reset all phases
+      actor.resetTimeline();
     }
     m_paused = false;
     m_pauseStart = 0;

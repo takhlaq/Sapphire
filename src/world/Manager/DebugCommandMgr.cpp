@@ -845,6 +845,7 @@ void DebugCommandMgr::add( char* data, Entity::Player& player, std::shared_ptr< 
       return;
     }
 
+    pTeri->pushActor( pBNpc );
     auto& pos = pBNpc->getPos();
     playerMgr.sendDebug( player, "BNpc ID: {} Pos: {} {} {}", pBNpc->getId(), pos.x, pos.y, pos.z );
   }

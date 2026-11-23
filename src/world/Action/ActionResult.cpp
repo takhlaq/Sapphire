@@ -39,6 +39,13 @@ Entity::CharaPtr ActionResult::getTarget() const
 
 void ActionResult::damage( uint32_t amount, CalcResultType hitType, uint8_t hitEffect, ActionResultFlag flag, float aggroModifier )
 {
+  if( m_target->getInvincibilityType() == InvincibilityIgnoreDamage )
+  {
+    m_result = {};
+    m_result.Type = CalcResultType::TypeInvalid;
+    return;
+  }
+
   const auto clamped = std::min< uint32_t >( amount, static_cast< uint32_t >( std::numeric_limits< int16_t >::max() ) );
   m_result.Arg0 = hitEffect;
   m_result.Value = static_cast< int16_t >( clamped );

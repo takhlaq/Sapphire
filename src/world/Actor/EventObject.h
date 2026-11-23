@@ -33,6 +33,7 @@ namespace Sapphire::Entity
         float width;
         float height;
         float depth;
+        bool blockAllAgents;
       } box;
 
       struct
@@ -102,7 +103,7 @@ namespace Sapphire::Entity
 
     void setCollisionEnabled( bool enabled );
 
-    void addCollisionBox( Common::Vector3 pos, float rotation, float width, float height, float depth );
+    void addCollisionBox( Common::Vector3 pos, float rotation, float width, float height, float depth, bool blockAllAgents = false );
 
     void addCollisionCylinder( Common::Vector3 pos, float radius, float height );
 

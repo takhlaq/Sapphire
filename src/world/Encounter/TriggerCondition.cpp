@@ -40,6 +40,22 @@ namespace Sapphire::World::Encounter
     return false;
   };
 
+  void ConditionEncounterGroupDefeated::from_json( nlohmann::json& json, ConditionType condition,
+                                          const std::unordered_map< std::string, TimelineActor >& actors )
+  {
+    TriggerCondition::from_json( json, condition, actors );
+    const auto& params = json.at( "paramData" );
+    m_group = params.at( "group" ).get< std::string >();
+    m_count = params.at( "count" ).get< uint32_t >();
+    if( m_group.empty() || !m_count )
+      throw std::runtime_error( "An encounter group requires a name and a positive participant count" );
+  }
+
+  bool ConditionEncounterGroupDefeated::isConditionMet( PhaseState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
+  {
+    return pEncounter->areParticipantsDefeated( m_group, m_count );
+  }
+
   bool ConditionDirectorVar::isConditionMet( PhaseState& state, TimelinePack& pack, EncounterPtr pEncounter, uint64_t time ) const
   {
     auto pDirector = pEncounter->getDirector();

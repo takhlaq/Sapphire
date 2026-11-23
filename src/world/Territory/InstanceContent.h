@@ -46,6 +46,7 @@ namespace Sapphire
       DutyCommence = 0x40000001,
       DutyComplete = 0x40000002,
       SetStringendoMode = 0x40000003,
+      DutyCompleteWithoutClearScreen = 0x40000003,
       SetDutyTime = 0x40000004,
       LoadingScreen = 0x40000005,
       Forward = 0x40000006,
@@ -133,6 +134,7 @@ namespace Sapphire
 
     void sendInvalidateTodoList();
 
+    void finishDuty( bool showClearScreen );
     void sendDutyComplete();
 
     void sendDutyCommence();
@@ -239,6 +241,7 @@ namespace Sapphire
     uint64_t m_instanceResetTime;
     uint64_t m_instanceResetFinishTime;
 
+    bool m_showClearScreen{ true };
     bool m_voteState;
     bool m_instanceTerminate;
 

@@ -40,6 +40,12 @@ namespace Sapphire::World::Encounter
     return m_type;
   }
 
+  void TimelineActor::resetTimeline()
+  {
+    m_pPhase.reset();
+    m_state = {};
+  }
+
   void TimelineActor::addPhase( PhasePtr pPhase )
   {
     if( m_phases.find( pPhase->getId() ) != m_phases.end() )
@@ -230,7 +236,7 @@ namespace Sapphire::World::Encounter
       auto pParent = pTeri->getActiveBNpcByLayoutId( m_layoutId );
       Common::BNpcType type = pParent ? pParent->getBNpcType() : Common::BNpcType::Enemy;
 
-      pActor = pTeri->createBNpcFromLayoutIdNoPush( m_layoutId, 1000, type );
+      pActor = pTeri->createBNpcFromLayoutId( m_layoutId, 1000, type );
       m_subActors[ name ] = pActor;
 
       // detach current controller so we can set a new one

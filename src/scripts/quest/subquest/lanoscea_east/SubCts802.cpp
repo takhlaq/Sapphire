@@ -160,6 +160,11 @@ private:
       auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
       auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
       auto enemy3 = instance->createBNpcFromLayoutId( Enemy3, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy2 || !enemy3 )
+        return;
+
+      instance->pushActor( enemy2 );
+      instance->pushActor( enemy3 );
 
       enemy2->hateListAddDelayed( player.getAsPlayer(), 1 );
       enemy3->hateListAddDelayed( player.getAsPlayer(), 1 );
@@ -282,6 +287,11 @@ private:
     {
       auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
       auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy0 || !enemy1 )
+        return;
+
+      instance->pushActor( enemy0 );
+      instance->pushActor( enemy1 );
 
       enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
       enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );

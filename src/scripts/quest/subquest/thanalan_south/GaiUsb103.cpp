@@ -203,6 +203,10 @@ private:
     quest.setBitFlag8( 1, true );
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy1 )
+      return;
+
+    instance->pushActor( enemy1 );
     enemy1->hateListAdd( player.getAsPlayer(), 1 );
   }
 

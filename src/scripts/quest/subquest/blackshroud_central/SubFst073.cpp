@@ -399,7 +399,11 @@ private:
   {
     auto instance = teriMgr().getTerritoryByGuId( player.getTerritoryId() );
     auto enemy0 = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy );
+    if( !enemy0 )
+      return;
     enemy0->setTriggerOwnerId( player.getId() );
+
+    instance->pushActor( enemy0 );
     enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
   }
 

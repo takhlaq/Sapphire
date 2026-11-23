@@ -166,6 +166,10 @@ private:
     if( !enemySpawned && quest.getUI8AL() < 1)
     {
       auto enemy = instance->createBNpcFromLayoutId( Enemy0, 413 /*TODO: Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+      if( !enemy )
+        return;
+
+      instance->pushActor( enemy );
       enemy->hateListAdd( player.getAsPlayer(), 1 );
     }
   }

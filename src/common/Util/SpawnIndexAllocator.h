@@ -60,6 +60,11 @@ namespace Sapphire::Common::Util
       return nextId;
     }
 
+    bool hasSpawnIndex( ActorIdType actorId ) const
+    {
+      return m_actorIdToAllocatedMap.find( actorId ) != m_actorIdToAllocatedMap.end();
+    }
+
     void freeAllSpawnIndexes()
     {
       setupQueue();

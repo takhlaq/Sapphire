@@ -234,6 +234,13 @@ private:
     auto enemy1 = instance->createBNpcFromLayoutId( Enemy1, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
     auto enemy2 = instance->createBNpcFromLayoutId( Enemy2, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
     auto enemy3 = instance->createBNpcFromLayoutId( Enemy3, 1220 /*Find the right value*/, Common::BNpcType::Enemy, player.getId() );
+    if( !enemy0 || !enemy1 || !enemy2 || !enemy3 )
+      return;
+
+    instance->pushActor( enemy0 );
+    instance->pushActor( enemy1 );
+    instance->pushActor( enemy2 );
+    instance->pushActor( enemy3 );
 
     enemy0->hateListAddDelayed( player.getAsPlayer(), 1 );
     enemy1->hateListAddDelayed( player.getAsPlayer(), 1 );

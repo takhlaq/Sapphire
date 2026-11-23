@@ -10,6 +10,8 @@
 #include "Actor/BNpc.h"
 
 #include "Phase.h"
+#include "Schedule.h"
+#include "Timepoint.h"
 
 #include "TimelineActorState.h"
 
@@ -53,6 +55,7 @@ namespace Sapphire::World::Encounter
         m_subActors.emplace( std::make_pair( subActor.first, nullptr ) );
 
       m_phases = rhs.m_phases;
+      m_initialPhaseId = rhs.m_initialPhaseId;
     }
 
     void setTypeEObj( const std::string& eobjName );
@@ -60,6 +63,8 @@ namespace Sapphire::World::Encounter
     void setTypeBNpc( const std::string& name, uint32_t layoutId );
 
     TimelineActorType getType() const;
+
+    void resetTimeline();
 
     void addPhase( PhasePtr pPhase );
 

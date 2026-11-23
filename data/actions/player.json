@@ -13538,7 +13538,7 @@
   },
   "971": {
     "name": "Water",
-    "potency": 0,
+    "potency": 100,
     "comboPotency": 0,
     "flankPotency": 0,
     "frontPotency": 0,
@@ -13546,7 +13546,7 @@
     "curePotency": 0,
     "restorePercentage": 0,
     "nextCombo": [],
-    "targetFilter": 0,
+    "targetFilter": 2,
     "aggroModifier": 1.0,
     "statuses": {
       "caster": [],
@@ -13810,7 +13810,7 @@
   },
   "987": {
     "name": "Mind Blast",
-    "potency": 0,
+    "potency": 100,
     "comboPotency": 0,
     "flankPotency": 0,
     "frontPotency": 0,
@@ -13818,7 +13818,7 @@
     "curePotency": 0,
     "restorePercentage": 0,
     "nextCombo": [],
-    "targetFilter": 0,
+    "targetFilter": 2,
     "aggroModifier": 1.0,
     "statuses": {
       "caster": [],
@@ -13827,7 +13827,7 @@
   },
   "988": {
     "name": "Drain Touch",
-    "potency": 0,
+    "potency": 75,
     "comboPotency": 0,
     "flankPotency": 0,
     "frontPotency": 0,
@@ -13835,7 +13835,7 @@
     "curePotency": 0,
     "restorePercentage": 0,
     "nextCombo": [],
-    "targetFilter": 0,
+    "targetFilter": 2,
     "aggroModifier": 1.0,
     "statuses": {
       "caster": [],

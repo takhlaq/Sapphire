@@ -161,7 +161,7 @@ void Sapphire::InstanceContent::updateState( uint64_t tickCount )
       sendDutyCommence();
 
       if( m_pEntranceEObj )
-        m_pEntranceEObj->setPermissionInvisibility( 1 );
+        m_pEntranceEObj->setPermissionInvisibility( 7 );
       setState( InstanceContentState::DutyInProgress );
 
       break;
@@ -235,7 +235,7 @@ void Sapphire::InstanceContent::updateState( uint64_t tickCount )
           return;
       }
 
-      m_pEntranceEObj->setPermissionInvisibility( 1 );
+      m_pEntranceEObj->setPermissionInvisibility( 7 );
       sendForward();
 
       setState( InstanceContentState::DutyInProgress );
@@ -507,14 +507,22 @@ void Sapphire::InstanceContent::sendInvalidateTodoList()
   }
 }
 
+void Sapphire::InstanceContent::finishDuty( bool showClearScreen )
+{
+  m_showClearScreen = showClearScreen;
+  setState( InstanceContentState::DutyFinished );
+}
+
 void Sapphire::InstanceContent::sendDutyComplete()
 {
   auto& server = Common::Service< World::WorldServer >::ref();
+  auto order = m_showClearScreen ? DirectorEventId::DutyComplete : DirectorEventId::DutyCompleteWithoutClearScreen;
+  auto music = m_showClearScreen ? m_instanceConfiguration->data().ClearMusic : 0;
   for( const auto& playerIt : m_playerMap )
   {
     auto player = playerIt.second;
     server.queueForPlayer( player->getCharacterId(), makeActorControlSelf( player->getId(), DirectorUpdate, getDirectorId(),
-                                                                              DirectorEventId::DutyComplete, m_instanceConfiguration->data().ClearMusic, 0 ) );
+                                                                              order, music, 0 ) );
   }
 }
 
