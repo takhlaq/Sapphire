@@ -195,38 +195,40 @@ void GameConnection::onDisconnect()
 void GameConnection::onRecv( std::vector< uint8_t >& buffer )
 {
   m_packets.insert( std::end( m_packets ), std::begin( buffer ), std::end( buffer ) );
-  // This is assumed packet always start with valid FFXIVARR_PACKET_HEADER for now.
-  Packets::FFXIVARR_PACKET_HEADER packetHeader{};
-  const auto headerResult = Packets::getHeader( m_packets, 0, packetHeader );
-
-  if( headerResult == Incomplete )
-    return;
-
-  if( headerResult == Malformed )
+  uint32_t offset = 0;
+  while( offset < m_packets.size() )
   {
-    Logger::info( "Dropping connection due to malformed packet header." );
-    disconnect();
-    return;
+    Packets::FFXIVARR_PACKET_HEADER header{};
+    auto result = Packets::getHeader( m_packets, offset, header );
+    if( result == Incomplete )
+      break;
+
+    if( result == Malformed || header.size < sizeof( header ) )
+    {
+      Logger::info( "Dropping connection due to malformed packet header." );
+      disconnect();
+      return;
+    }
+
+    std::vector< Packets::FFXIVARR_PACKET_RAW > packets;
+    result = Packets::getPackets( m_packets, offset + sizeof( header ), header, packets );
+    if( result == Incomplete )
+      break;
+
+    if( result == Malformed )
+    {
+      Logger::info( "Dropping connection due to malformed packets." );
+      disconnect();
+      return;
+    }
+
+    handlePackets( header, packets );
+    if( !m_socket.is_open() )
+      return;
+
+    offset += header.size;
   }
-
-  // Dissect packet list
-  std::vector< Packets::FFXIVARR_PACKET_RAW > packetList;
-  const auto packetResult = Packets::getPackets( m_packets, sizeof( struct FFXIVARR_PACKET_HEADER ), packetHeader, packetList );
-
-  if( packetResult == Incomplete )
-    return;
-
-  if( packetResult == Malformed )
-  {
-    Logger::info( "Dropping connection due to malformed packets." );
-    disconnect();
-    return;
-  }
-
-  // consider multiple frames in single tcp recv
-  const auto consumed = static_cast< size_t >( packetHeader.size );
-  handlePackets( packetHeader, packetList );
-  m_packets.erase( m_packets.begin(), m_packets.begin() + consumed );
+  m_packets.erase( m_packets.begin(), m_packets.begin() + offset );
 }
 
 void GameConnection::onError( const asio::error_code& error )
