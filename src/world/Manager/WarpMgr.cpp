@@ -91,7 +91,7 @@ void WarpMgr::requestWarp( Entity::Player& player, Common::WarpType warpType, Co
 {
   m_entityIdToWarpInfoMap[ player.getId() ] = { 0, warpType, targetPos, targetRot };
 
-  Network::Util::Packet::sendActorControlSelf( player.getInRangePlayerIds( true ), player.getId(), WarpStart, warpType, warpType, 0, player.getTerritoryTypeId(), 1 );
+  Network::Util::Packet::sendActorControlSelf( player, player.getId(), WarpStart, warpType, warpType, 0, player.getTerritoryTypeId(), 1 );
   Network::Util::Packet::sendActorControl( player.getInRangePlayerIds(), player.getId(), ActorDespawnEffect, warpType, player.getTerritoryTypeId() );
 
   auto& taskMgr = Common::Service< TaskMgr >::ref();
@@ -105,7 +105,10 @@ void WarpMgr::finishWarp( Entity::Player& player )
   WarpType warpType = WarpType::WARP_TYPE_NORMAL;
   auto it = m_entityIdToWarpInfoMap.find( player.getId() );
   if( it != m_entityIdToWarpInfoMap.end() )
+  {
     warpType = it->second.m_warpType;
+    m_entityIdToWarpInfoMap.erase( it );
+  }
 
   bool raiseAnim = player.getStatus() == Common::ActorStatus::Dead ? 1 : 0;
 
@@ -131,7 +134,7 @@ void WarpMgr::finishWarp( Entity::Player& player )
   auto warpFinishAnim = warpType - 1;
 
   if( !player.getGmInvis() )
-    Network::Util::Packet::sendActorControlSelf( player.getInRangePlayerIds(), player.getId(), Appear, warpFinishAnim, raiseAnim );
+    Network::Util::Packet::sendActorControl( player.getInRangePlayerIds(), player.getId(), Appear, warpFinishAnim, raiseAnim );
 
   Network::Util::Packet::sendActorControlSelf( player, player.getId(), Appear, warpFinishAnim, raiseAnim );
   Network::Util::Packet::sendActorControl( player.getInRangePlayerIds( true ), player.getId(), SetStatus, static_cast< uint8_t >( Common::ActorStatus::Idle ) );

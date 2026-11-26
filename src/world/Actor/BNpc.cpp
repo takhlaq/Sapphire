@@ -424,7 +424,6 @@ void BNpc::spawn( PlayerPtr pTarget )
 void BNpc::despawn( PlayerPtr pTarget )
 {
   pTarget->freePlayerSpawnId( getId() );
-  Network::Util::Packet::sendActorControlSelf( *pTarget, getId(), WarpStart, 4, getId(), 1 );
 }
 
 BNpcState BNpc::getState() const

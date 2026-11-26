@@ -507,9 +507,8 @@ void Sapphire::Network::GameConnection::commandHandler( const Packets::FFXIVARR_
     }
     case PacketCommand::EMOTE: // emote
     {
-      const uint64_t targetId = player.getTargetObjectId();
-      uint32_t emoteId = data.Arg0;
-      bool isSilent = data.Arg2 == 1;
+      const uint32_t emoteId = data.Arg0;
+      const uint32_t playbackFlags = data.Arg2 & 0x3;
 
       auto& exdData = Service< Data::ExdData >::ref();
       auto emoteData = exdData.getRow< Excel::Emote >( emoteId );
@@ -517,7 +516,7 @@ void Sapphire::Network::GameConnection::commandHandler( const Packets::FFXIVARR_
       if( !emoteData )
         return;
 
-      Network::Util::Packet::sendActorControlTarget( player.getInRangePlayerIds(), player.getId(), Emote, emoteId, 0, isSilent ? 1 : 0, 0, targetId );
+      Network::Util::Packet::sendActorControlTarget( player.getInRangePlayerIds(), player.getId(), Emote, emoteId, data.Arg1, playbackFlags, 0, data.Target );
 
       bool isPersistent = emoteData->data().Mode != 0;
 
@@ -541,7 +540,7 @@ void Sapphire::Network::GameConnection::commandHandler( const Packets::FFXIVARR_
     }
     case PacketCommand::EMOTE_CANCEL: // emote
     {
-      Network::Util::Packet::sendActorControl( player.getInRangePlayerIds(), player.getId(), EmoteModeInterrupt );
+      Network::Util::Packet::sendActorControl( player.getInRangePlayerIds(), player.getId(), EmoteInterrupt );
       break;
     }
     case PacketCommand::EMOTE_MODE_CANCEL:

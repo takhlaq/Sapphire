@@ -45,11 +45,9 @@ void MoveTerritoryTask::execute()
   pPlayer->setStance( Common::Stance::Passive );
   pPlayer->setAutoattack( false );
 
-  auto inRangePlayerIds = pPlayer->getInRangePlayerIds( true );
-
   auto warpStart = makeActorControlSelf( pPlayer->getId(), WarpStart, m_warpInfo.m_warpType, 1, 0, m_warpInfo.m_targetTerritoryId, 1 );
-  server.queueForPlayers( inRangePlayerIds, warpStart );
-  server.queueForPlayers( inRangePlayerIds, makeActorControl( pPlayer->getId(), ActorDespawnEffect, m_warpInfo.m_warpType, m_warpInfo.m_targetTerritoryId ) );
+  server.queueForPlayer( pPlayer->getCharacterId(), warpStart );
+  server.queueForPlayers( pPlayer->getInRangePlayerIds(), makeActorControl( pPlayer->getId(), ActorDespawnEffect, m_warpInfo.m_warpType, m_warpInfo.m_targetTerritoryId ) );
 
   pPlayer->setCondition( Common::PlayerCondition::BetweenAreas );
 

@@ -718,11 +718,8 @@ void Player::spawn( Entity::PlayerPtr pTarget )
 // despawn
 void Player::despawn( Entity::PlayerPtr pTarget )
 {
-  const auto& pPlayer = pTarget;
   Logger::debug( "Despawning {0} for {1}", getName(), pTarget->getName() );
-
-  pPlayer->freePlayerSpawnId( getId() );
-  Network::Util::Packet::sendActorControlSelf( *this, pTarget->getId(), WarpStart, 4, getId(), 1 );
+  pTarget->freePlayerSpawnId( getId() );
 }
 
 GameObjectPtr Player::lookupTargetById( uint64_t targetId )
@@ -1759,7 +1756,20 @@ void Entity::Player::setPos( const Common::Vector3& pos, bool broadcastUpdate, b
 
 void Entity::Player::setPos( float x, float y, float z, bool broadcastUpdate, bool sendPacketToSelf )
 {
+  setPos( x, y, z, broadcastUpdate, sendPacketToSelf, true );
+}
+
+void Entity::Player::setPos( const Common::Vector3& pos, bool broadcastUpdate, bool sendPacketToSelf, bool sendPacketInRange )
+{
+  setPos( pos.x, pos.y, pos.z, broadcastUpdate, sendPacketToSelf, sendPacketInRange );
+}
+
+void Entity::Player::setPos( float x, float y, float z, bool broadcastUpdate, bool sendPacketToSelf, bool sendPacketInRange )
+{
   Chara::setPos( x, y, z, broadcastUpdate );
+
+  if( !sendPacketToSelf && !sendPacketInRange )
+    return;
 
   auto setActorPosPacket = makeZonePacket< FFXIVIpcWarp >( getId() );
   setActorPosPacket->data().x = x;
@@ -1767,5 +1777,8 @@ void Entity::Player::setPos( float x, float y, float z, bool broadcastUpdate, bo
   setActorPosPacket->data().z = z;
   setActorPosPacket->data().Dir = getRotUInt16();
 
-  server().queueForPlayers( getInRangePlayerIds( sendPacketToSelf ), setActorPosPacket );
+  if( sendPacketInRange )
+    server().queueForPlayers( getInRangePlayerIds( sendPacketToSelf ), setActorPosPacket );
+  else
+    server().queueForPlayer( getCharacterId(), setActorPosPacket );
 }

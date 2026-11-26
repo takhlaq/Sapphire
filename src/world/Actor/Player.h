@@ -806,6 +806,10 @@ namespace Sapphire::Entity
 
     void setPos( float x, float y, float z, bool broadcastUpdate = true, bool sendPacketToSelf = false ) override;
 
+    void setPos( const Common::Vector3& pos, bool broadcastUpdate, bool sendPacketToSelf, bool sendPacketInRange );
+
+    void setPos( float x, float y, float z, bool broadcastUpdate, bool sendPacketToSelf, bool sendPacketInRange );
+
   private:
     using InventoryMap = std::map< uint16_t, ItemContainerPtr >;
 

@@ -582,8 +582,6 @@ void Sapphire::Network::GameConnection::gmCommandNameHandler( const Packets::FFX
   if( player.getGmRank() <= 0 )
     return;
 
-  auto& teriMgr = Common::Service< World::Manager::TerritoryMgr >::ref();
-
   const auto packet = ZoneChannelPacket< Client::FFXIVIpcGmCommandName >( inPacket );
 
   const auto commandId = packet.data().Id;
@@ -596,31 +594,12 @@ void Sapphire::Network::GameConnection::gmCommandNameHandler( const Packets::FFX
   Logger::debug( "{0} used GM2 commandId: {1}, params: {2}, {3}, {4}, {5}, target: {6}",
                  player.getName(), commandId, param1, param2, param3, param4, target );
 
-  auto targetPlayer = playerMgr().getPlayer( target );
-  Sapphire::Entity::CharaPtr targetActor;
-
-  if( targetPlayer != nullptr )
+  auto targetPlayer = target == "self" ? player.getAsPlayer() : playerMgr().getPlayer( target );
+  if( !targetPlayer )
   {
-    targetActor = targetPlayer;
-  }
-  else
-  {
-    if( target == "self" )
-    {
-      targetActor = player.getAsPlayer();
-    }
-    else
-    {
-      PlayerMgr::sendUrgent( player, "Player {0} not found on this server.", target );
-      return;
-    }
-  }
-
-  if( !targetActor )
+    PlayerMgr::sendUrgent( player, "Player {0} not found on this server.", target );
     return;
-
-  auto pTargetActorTerri = teriMgr.getTerritoryByGuId( targetActor->getTerritoryId() );
-  auto pPlayerTerri = teriMgr.getTerritoryByGuId( player.getTerritoryId() );
+  }
 
   switch( commandId )
   {
@@ -630,9 +609,12 @@ void Sapphire::Network::GameConnection::gmCommandNameHandler( const Packets::FFX
       targetPlayer->resetMp();
       targetPlayer->setStatus( Common::ActorStatus::Idle );
 
-      server().queueForPlayers( targetPlayer->getInRangePlayerIds( true ), makeActorControlSelf( player.getId(), Appear, 0x01, 0x01, 0, 113 ) );
-      server().queueForPlayers( targetPlayer->getInRangePlayerIds( true ), makeActorControl( player.getId(), SetStatus,
-                                                                           static_cast< uint8_t >( Common::ActorStatus::Idle ) ) );
+      const auto actorId = targetPlayer->getId();
+      server().queueForPlayer( targetPlayer->getCharacterId(), makeActorControlSelf( actorId, Appear, 1, 1, 0, 113 ) );
+      if( !targetPlayer->getGmInvis() )
+        server().queueForPlayers( targetPlayer->getInRangePlayerIds(), makeActorControl( actorId, Appear, 1, 1, 0, 113 ) );
+
+      server().queueForPlayers( targetPlayer->getInRangePlayerIds( true ), makeActorControl( actorId, SetStatus, static_cast< uint8_t >( Common::ActorStatus::Idle ) ) );
 
       PlayerMgr::sendServerNotice( player, "Raised {0}", targetPlayer->getName());
       break;
