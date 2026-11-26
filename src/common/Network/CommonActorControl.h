@@ -68,7 +68,7 @@ namespace Sapphire::Network::ActorControl
 
     Unk3 = 0x20,                  // Animation related?
 
-    CombatIndicationShow = 0x22,
+    CreateLockon = 0x22,
 
     SpawnEffect = 0x25,
     ToggleInvisible = 0x26,
@@ -84,6 +84,7 @@ namespace Sapphire::Network::ActorControl
 
     SetSubTarget = 0x3A,
 
+    PlayLineVoice = 0x46,
     LimitbreakStart = 0x47,
     LimitbreakPartyStart = 0x48,
     BubbleText = 0x49, // param0 index into Balloon exd sheet

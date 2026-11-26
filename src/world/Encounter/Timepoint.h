@@ -48,7 +48,9 @@ namespace Sapphire::World::Encounter
 
     BubbleText, // idx in Balloon exd sheet
     PathTo,
-    NpcYell
+    NpcYell,
+    LockOn,
+    PlayLineVoice
   };
 
   enum class ActionTargetType : uint32_t
@@ -488,6 +490,34 @@ namespace Sapphire::World::Encounter
       m_posZ( z ),
       m_serverPathId( serverPathId ),
       m_useNavi( useNavi )
+    {
+    }
+  };
+
+  struct TimepointDataLockOn : public TimepointData
+  {
+    std::string m_selectorName;
+    int32_t m_selectorIndex;
+    uint32_t m_lockOnId;
+
+    TimepointDataLockOn( const std::string& selectorName, int32_t selectorIndex, uint32_t lockOnId ) :
+      TimepointData( TimepointDataType::LockOn ),
+      m_selectorName( selectorName ),
+      m_selectorIndex( selectorIndex ),
+      m_lockOnId( lockOnId )
+    {
+    }
+  };
+
+  struct TimepointDataPlayLineVoice : public TimepointData
+  {
+    std::string m_actorRef;
+    uint32_t m_voiceId;
+
+    TimepointDataPlayLineVoice( const std::string& actorRef, uint32_t voiceId ) :
+      TimepointData( TimepointDataType::PlayLineVoice ),
+      m_actorRef( actorRef ),
+      m_voiceId( voiceId )
     {
     }
   };

@@ -78,7 +78,9 @@ namespace Sapphire::World::Encounter
       { "setVar",              TimepointDataType::SetVar },
       { "bubbleText",          TimepointDataType::BubbleText },
       { "pathTo",              TimepointDataType::PathTo },
-      { "npcYell",             TimepointDataType::NpcYell }
+      { "npcYell",             TimepointDataType::NpcYell },
+      { "lockOn",              TimepointDataType::LockOn },
+      { "playLineVoice",       TimepointDataType::PlayLineVoice }
     };
 
     const static std::unordered_map< std::string, VarOpId > opMap =
@@ -499,6 +501,20 @@ namespace Sapphire::World::Encounter
         bool useNavi = dataJ.at( "useNavi" ).get< bool >();
 
         m_pData = std::make_shared< TimepointDataPathTo >( type, actorRef, targetRef, selector, selectorIndex, x, y, z, serverPath, useNavi );
+      }
+      break;
+      case TimepointDataType::LockOn:
+      {
+        const auto& data = json.at( "data" );
+        m_pData = std::make_shared< TimepointDataLockOn >( data.at( "selectorName" ).get< std::string >(),
+                                                          data.value( "selectorIndex", 0 ), data.at( "lockOnId" ).get< uint32_t >() );
+      }
+      break;
+      case TimepointDataType::PlayLineVoice:
+      {
+        const auto& data = json.at( "data" );
+        m_pData = std::make_shared< TimepointDataPlayLineVoice >( data.at( "actorName" ).get< std::string >(),
+                                                                 data.at( "voiceId" ).get< uint32_t >() );
       }
       break;
       case TimepointDataType::NpcYell:
@@ -1406,6 +1422,25 @@ namespace Sapphire::World::Encounter
             pController->pathTo( { pos.x, pos.y, pos.z }, 0.1f, static_cast< AI::Controller::Controller::PathFlags >( flags ) );
           }
         }
+      }
+      break;
+      case TimepointDataType::LockOn:
+      {
+        auto pData = std::static_pointer_cast< TimepointDataLockOn >( m_pData );
+        auto targetId = pack.getSnapshotResultTargetIdAt( pData->m_selectorName, pData->m_selectorIndex );
+        auto pTarget = pTeri->getEntityById( targetId );
+        if( pTarget && pTarget->isChara() )
+          Network::Util::Packet::sendActorControl( pTarget->getInRangePlayerIds( true ), pTarget->getId(),
+                                                   Network::ActorControl::CreateLockon, pData->m_lockOnId );
+      }
+      break;
+      case TimepointDataType::PlayLineVoice:
+      {
+        auto pData = std::static_pointer_cast< TimepointDataPlayLineVoice >( m_pData );
+        auto pBNpc = pack.getBNpcByRef( pData->m_actorRef, pEncounter );
+        if( pBNpc )
+          Network::Util::Packet::sendActorControl( pBNpc->getInRangePlayerIds(), pBNpc->getId(),
+                                                   Network::ActorControl::PlayLineVoice, pData->m_voiceId );
       }
       break;
       case TimepointDataType::NpcYell:
